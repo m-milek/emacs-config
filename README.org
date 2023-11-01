@@ -1,155 +1,12 @@
 #+TITLE: Emacs Config
 #+PROPERTY: header-args :tangle "~/.emacs.d/init.el"
 * Introduction
-
 This GNU Emacs configuration was mainly written according to guidance from David Wilson given in
 his [[https://www.youtube.com/watch?v=74zOY-vgkyw&list=PLEoMzSkcN8oPH1au7H6B7bBJ4ZO7BXjSZ&index=1][Emacs From Scratch]] YouTube series.
-* My Elisp
-These files are elisp code that I've written myself.
-- *my-latex-mode.el*: Code regarding editing LaTeX documents.
-- *random-dashboard-image.el*: Code for choosing a random image for the dashboard visible after startup.
-- *my-windows.el* - Code customizing window management.
-#+BEGIN_SRC elisp
-    (load-file "/home/michal/.emacs.d/my-elisp/my-latex-mode.el")
-    (load-file "/home/michal/.emacs.d/my-elisp/my-random-dashboard-image.el")
-    (load-file "/home/michal/.emacs.d/my-elisp/my-windows.el")
-    (load-file "/home/michal/.emacs.d/my-elisp/my-utils.el")
-    (load-file "/home/michal/.emacs.d/my-elisp/char-summary.el")
-
-    (defun make-obsolete (obsolete-name current-name &optional when)
-    "Make the byte-compiler warn that function OBSOLETE-NAME is obsolete.
-  OBSOLETE-NAME should be a function name or macro name (a symbol).
-
-  The warning will say that CURRENT-NAME should be used instead.
-  If CURRENT-NAME is a string, that is the `use instead' message
-  \(it should end with a period, and not start with a capital).
-  WHEN should be a string indicating when the function
-  was first made obsolete, for example a date or a release number."
-    (declare (advertised-calling-convention
-              ;; New code should always provide the `when' argument.
-              (obsolete-name current-name when) "23.1"))
-    (put obsolete-name 'byte-obsolete-info
-         ;; The second entry used to hold the `byte-compile' handler, but
-         ;; is not used any more nowadays.
-         (purecopy (list current-name nil when)))
-    obsolete-name)
-
-  (defmacro define-obsolete-function-alias (obsolete-name current-name
-                                                          &optional when docstring)
-    "Set OBSOLETE-NAME's function definition to CURRENT-NAME and mark it obsolete.
-
-  \(define-obsolete-function-alias \\='old-fun \\='new-fun \"22.1\" \"old-fun's doc.\")
-
-  is equivalent to the following two lines of code:
-
-  \(defalias \\='old-fun \\='new-fun \"old-fun's doc.\")
-  \(make-obsolete \\='old-fun \\='new-fun \"22.1\")
-
-  WHEN should be a string indicating when the function was first
-  made obsolete, for example a date or a release number.
-
-  See the docstrings of `defalias' and `make-obsolete' for more details."
-    (declare (doc-string 4)
-             (advertised-calling-convention
-              ;; New code should always provide the `when' argument.
-              (obsolete-name current-name when &optional docstring) "23.1"))
-    `(progn
-       (defalias ,obsolete-name ,current-name ,docstring)
-       (make-obsolete ,obsolete-name ,current-name ,when)))
-
-  (defun make-obsolete-variable (obsolete-name current-name &optional when access-type)
-    "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
-  The warning will say that CURRENT-NAME should be used instead.
-  If CURRENT-NAME is a string, that is the `use instead' message.
-  WHEN should be a string indicating when the variable
-  was first made obsolete, for example a date or a release number.
-  ACCESS-TYPE if non-nil should specify the kind of access that will trigger
-    obsolescence warnings; it can be either `get' or `set'."
-    (declare (advertised-calling-convention
-              ;; New code should always provide the `when' argument.
-              (obsolete-name current-name when &optional access-type) "23.1"))
-    (put obsolete-name 'byte-obsolete-variable
-         (purecopy (list current-name access-type when)))
-    obsolete-name)
-
-  (defmacro define-obsolete-variable-alias (obsolete-name current-name
-                                                          &optional when docstring)
-    "Make OBSOLETE-NAME a variable alias for CURRENT-NAME and mark it obsolete.
-  This uses `defvaralias' and `make-obsolete-variable' (which see).
-  See the Info node `(elisp)Variable Aliases' for more details.
-
-  If CURRENT-NAME is a defcustom or a defvar (more generally, any variable
-  where OBSOLETE-NAME may be set, e.g. in an init file, before the
-  alias is defined), then the define-obsolete-variable-alias
-  statement should be evaluated before the defcustom, if user
-  customizations are to be respected.  The simplest way to achieve
-  this is to place the alias statement before the defcustom (this
-  is not necessary for aliases that are autoloaded, or in files
-  dumped with Emacs).  This is so that any user customizations are
-  applied before the defcustom tries to initialize the
-  variable (this is due to the way `defvaralias' works).
-
-  WHEN should be a string indicating when the variable was first
-  made obsolete, for example a date or a release number.
-
-  For the benefit of Customize, if OBSOLETE-NAME has
-  any of the following properties, they are copied to
-  CURRENT-NAME, if it does not already have them:
-  `saved-value', `saved-variable-comment'."
-    (declare (doc-string 4)
-             (advertised-calling-convention
-              ;; New code should always provide the `when' argument.
-              (obsolete-name current-name when &optional docstring) "23.1"))
-    `(progn
-       (defvaralias ,obsolete-name ,current-name ,docstring)
-       ;; See Bug#4706.
-       (dolist (prop '(saved-value saved-variable-comment))
-         (and (get ,obsolete-name prop)
-              (null (get ,current-name prop))
-              (put ,current-name prop (get ,obsolete-name prop))))
-       (make-obsolete-variable ,obsolete-name ,current-name ,when)))
-
-
-#+END_SRC
-
-* Basic UI
-This makes for a minimal Emacs UI, without distracting icons and menus.
-#+BEGIN_SRC elisp
-  (setq inhibit-startup-message t)
-  (scroll-bar-mode 0);
-  ;; visual scrollbar
-  (tool-bar-mode 0)
-  (tooltip-mode 0);
-  (set-fringe-mode 0);
-  (menu-bar-mode 0)
-  ;; set up visible bell
-  (setq visible-bell nil)
-  (global-visual-line-mode -1)
-#+END_SRC
-
-* Font
-#+BEGIN_SRC elisp
-  ;; Set the variable pitch face
-  (set-face-attribute 'variable-pitch nil
-                      :font "Iosevka Aile"
-                      :height 150)
-
-  (set-face-attribute 'default nil
-                      :font "Source Code Pro"
-                      :height 150)
-
-  ;; Set the fixed pitch face
-  (set-face-attribute 'fixed-pitch nil
-                      :font "Source Code Pro"
-                      :height 150)
-
-#+END_SRC
 
 * Package Management
-My configuration uses src_elisp{use-package} as its package management utility.
+My configuration uses use-package as its package management utility.
 #+BEGIN_SRC elisp
-  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-
   (require 'package)
   (setq package-archives '(
                            ("melpa" . "https://melpa.org/packages/")
@@ -159,11 +16,56 @@ My configuration uses src_elisp{use-package} as its package management utility.
   (package-initialize)
   (unless package-archive-contents
     (package-refresh-contents))
+
   ;; Initialize use-package on non Linux platforms
   (unless (package-installed-p 'use-package)
     (package-install 'use-package))
+
   (require 'use-package)
   (setq use-package-always-ensure t)
+#+END_SRC
+* My Elisp
+These files are elisp code that I've written myself.
+- *my-latex-mode.el*: Code regarding editing LaTeX documents.
+- *random-dashboard-image.el*: Code for choosing a random image for the dashboard visible after startup.
+- *my-windows.el* - Code customizing window management.
+#+BEGIN_SRC elisp
+  (load-file "/home/michal/.emacs.d/my-elisp/my-latex-mode.el")
+  (load-file "/home/michal/.emacs.d/my-elisp/my-random-dashboard-image.el")
+  (load-file "/home/michal/.emacs.d/my-elisp/my-windows.el")
+  (load-file "/home/michal/.emacs.d/my-elisp/my-utils.el")
+  (load-file "/home/michal/.emacs.d/my-elisp/char-summary.el")
+  (load-file "/home/michal/.emacs.d/my-elisp/fixes.el")
+  (load-file "/home/michal/.emacs.d/my-elisp/my-hooks.el")
+#+END_SRC
+
+* UI
+This makes for a minimal Emacs UI, without distracting icons, menus and bars.
+#+BEGIN_SRC elisp
+  (setq inhibit-startup-message t)
+  (scroll-bar-mode 0);
+  (tool-bar-mode 0)
+  (tooltip-mode 0);
+  (set-fringe-mode 0);
+  (menu-bar-mode 0)
+  (setq visible-bell nil)
+  (global-visual-line-mode -1)
+#+END_SRC
+
+* Font
+Setup different font faces.
+#+BEGIN_SRC elisp
+  (set-face-attribute 'variable-pitch nil
+                      :font "Iosevka Aile"
+                      :height 150)
+
+  (set-face-attribute 'default nil
+                      :font "Source Code Pro"
+                      :height 150)
+
+  (set-face-attribute 'fixed-pitch nil
+                      :font "Source Code Pro"
+                      :height 150)
 #+END_SRC
 
 * Ivy, Swiper, Counsel
@@ -176,7 +78,7 @@ My configuration uses src_elisp{use-package} as its package management utility.
   (use-package ivy
     :diminish
     :bind (
-           ;;("C-s" . swiper)
+           ("C-s" . swiper)
            :map ivy-minibuffer-map
            ("TAB" . ivy-alt-done)
            ("C-l" . ivy-alt-done)
@@ -194,7 +96,6 @@ My configuration uses src_elisp{use-package} as its package management utility.
 
   (use-package counsel
     :ensure t
-    :defer
     :config
     ;; Remove the '^' at the beginning of counsel commands
     (setq ivy-initial-inputs-alist nil))
@@ -203,29 +104,23 @@ My configuration uses src_elisp{use-package} as its package management utility.
 
 * Keybindings
 ** Global
+*** Movement
 #+BEGIN_SRC elisp
+  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
   (global-set-key (kbd "C-h") 'backward-char)
-  (global-unset-key (kbd "C-j"))
   (global-set-key (kbd "C-j") 'next-line)
   (global-set-key (kbd "C-k") 'previous-line)
   (global-set-key (kbd "C-l") 'forward-char)
   (global-set-key (kbd "C-M-h") 'left-word)
-  (global-unset-key (kbd "C-M-j"))
-  (global-set-key (kbd "C-M-j") nil)
   (global-set-key (kbd "C-M-j") (lambda () (interactive) (next-line 4)))
   (global-set-key (kbd "C-M-k") (lambda () (interactive) (previous-line 4)))
   (global-set-key (kbd "C-M-l") 'right-word)
   (global-set-key (kbd "C-m") 'back-to-indentation)
   (global-set-key (kbd "RET") 'newline)
-
-  (global-set-key (kbd "C-c w") 'toggle-truncate-lines)
-
-  (global-set-key (kbd "C-n") 'electric-newline-and-maybe-indent)
-  (global-set-key (kbd "C-f") 'kill-line)
-  (global-set-key (kbd "C-p") 'help-command)
-  (global-set-key (kbd "C-b") 'recenter-top-bottom)
-  (global-set-key (kbd "C-M-o") 'counsel-switch-buffer)
-
+#+END_SRC
+*** Counsel
+SCHEDULED: <2023-11-01 Wed>
+#+BEGIN_SRC elisp
   (global-set-key (kbd "M-x") 'counsel-M-x)
   (global-set-key (kbd "C-x C-f") 'counsel-find-file)
   (global-set-key (kbd "M-y") 'counsel-yank-pop)
@@ -254,6 +149,16 @@ My configuration uses src_elisp{use-package} as its package management utility.
   (global-set-key (kbd "C-c o") 'counsel-outline)
   (global-set-key (kbd "C-c t") 'counsel-load-theme)
   (global-set-key (kbd "C-c F") 'counsel-org-file)
+#+END_SRC
+
+#+BEGIN_SRC elisp
+  (global-set-key (kbd "C-c w") 'toggle-truncate-lines)
+
+  ;;(global-set-key (kbd "C-n") 'electric-newline-and-maybe-indent)
+  (global-set-key (kbd "C-f") 'kill-line)
+  (global-set-key (kbd "C-p") 'help-command)
+  (global-set-key (kbd "C-b") 'recenter-top-bottom)
+  (global-set-key (kbd "C-M-o") 'counsel-switch-buffer)
 
   (global-set-key (kbd "C-t") 'goto-line-preview)
 
@@ -266,8 +171,6 @@ My configuration uses src_elisp{use-package} as its package management utility.
   (global-set-key (kbd "C-.") 'mc/mark-next-like-this)
   (global-set-key (kbd "C-,") 'mc/mark-previous-like-this)
   (global-set-key (kbd "C-c C-,") 'mc/mark-all-like-this)
-
-  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
   ;;(global-unset-key (kbd "<right>"))
   ;;(global-unset-key (kbd "<left>"))
@@ -282,7 +185,6 @@ My configuration uses src_elisp{use-package} as its package management utility.
   (global-set-key (kbd "C-x 2") 'mm/split-window-vertically-and-focus)
   (global-set-key (kbd "C-x 3") 'mm/split-window-horizontally-and-focus)
   (global-set-key (kbd "C-r") 'mm/go-to-saved-point)
-  (global-set-key (kbd "C-s") (lambda () (interactive) (mm/save-point-and-fn 'swiper)))
   (global-set-key (kbd "C-M-s") 'mm/save-point)
   (global-set-key (kbd "C-`") 'mm/toggle-vterm-below)
 #+END_SRC
@@ -290,104 +192,107 @@ My configuration uses src_elisp{use-package} as its package management utility.
 ** Local
 #+BEGIN_SRC elisp
   (define-key emacs-lisp-mode-map (kbd "C-x M-e") 'eval-buffer)
-
 #+END_SRC
 * Minor use-package uses
 #+BEGIN_SRC elisp
-    (require 'multiple-cursors)
+  (use-package multiple-cursors
+    :ensure t)
 
-    (use-package beacon
+  (use-package beacon
+    :ensure t
+    :config
+    (beacon-mode 1))
+
+  (use-package which-key
+    :ensure t
+    :config
+    (which-key-mode 1))
+
+  (use-package ivy-rich
+    :ensure t
+    :config
+    (ivy-rich-mode 1))
+
+  ;; (use-package general
+  ;;   :config
+  ;;   (general-evil-setup nil))
+
+  (use-package projectile
+    :diminish projectile-mode
+    :config (projectile-mode)
+    :bind-keymap
+    ("C-c p" . projectile-command-map)
+    :config
+    (when (file-directory-p "~/Programming")
+      (setq projectile-project-search-path '("~/Programming")))
+    (setq projectile-switch-project-action #'projectile-dired))
+
+  (use-package counsel-projectile
+    :config (counsel-projectile-mode))
+
+  (use-package magit
+    :commands (magit-status magit-get-current-branch)
+    :custom
+    (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+
+  (use-package flycheck
+    :ensure t)
+
+  (use-package yasnippet
+    :ensure t
+    :config
+    (use-package yasnippet-snippets
       :ensure t)
-    (beacon-mode 1)
+    (yas-reload-all))
 
-    (use-package which-key
-      :ensure t)
-    (which-key-mode 1)
-    (use-package ivy-rich
-      :ensure t
-      :init
-      (ivy-rich-mode 1))
-
-    (use-package general
-      :config
-      (general-evil-setup nil))
-
-    (use-package projectile
-      :diminish projectile-mode
-      :config (projectile-mode)
-      :bind-keymap
-      ("C-c p" . projectile-command-map)
-      :init
-      (when (file-directory-p "~/Programming")
-        (setq projectile-project-search-path '("~/Programming")))
-      (setq projectile-switch-project-action #'projectile-dired))
-
-    (use-package counsel-projectile
-      :config (counsel-projectile-mode))
-
-    (use-package magit
-      :commands (magit-status magit-get-current-branch)
-      :custom
-      (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
-
-    (use-package flycheck
-      :ensure t)
-
-    (use-package yasnippet
-      :ensure t
-      :defer
-      :config
-      (yas-global-mode)
-      (use-package yasnippet-snippets
-        :ensure t)
-      (yas-reload-all))
-    (yafolding-mode 1)
-
-    (use-package tree-sitter
-      :ensure t)
-
+  (use-package tree-sitter
+    :ensure t
+    :config
     (use-package tree-sitter-langs
-      :defer
-      :ensure t)
-    (global-tree-sitter-mode)
-
-    (use-package rainbow-delimiters
-      :ensure t)
-
-    (use-package tex
-      :ensure auctex
-      :defer)
-
-    (use-package pdf-tools
-      :defer
-      :ensure t)
-
-    (use-package dired-single
-      :ensure t)
-
-    (use-package move-dup
-      :ensure t)
-
-    (use-package goto-line-preview
-      :ensure t)
-
-    (use-package ess
-      :ensure t)
-
-    (use-package avy
-      :bind
-      ("M-s" . avy-goto-char))
-
-    (use-package ace-window
       :ensure t
-      :bind
-      ("M-o" . ace-window))
+      :config
+      (global-tree-sitter-mode)))
 
-    (use-package restclient
-      :ensure t)
+  (use-package treemacs
+    :ensure t)
 
-    (use-package compat
-      :ensure t)
+  (use-package rainbow-delimiters
+    :ensure t)
+
+  (use-package tex
+    :ensure auctex)
+
+  (use-package pdf-tools
+    :ensure t
+    :magic ("%PDF" . pdf-view-mode)
+    :config
+    (pdf-tools-install :no-query))
+
+
+
+  (use-package move-dup
+    :ensure t)
+
+  (use-package goto-line-preview
+    :ensure t)
+
+  (use-package ess
+    :ensure t)
+
+  (use-package avy
+    :bind
+    ("M-s" . avy-goto-char-2))
+
+  (use-package ace-window
+    :ensure t
+    :bind
+    ("M-o" . ace-window))
+
+  (use-package restclient
+    :ensure t)
+
+  (use-package compat
+    :ensure t)
 
 #+END_SRC
 
@@ -398,13 +303,12 @@ My configuration uses src_elisp{use-package} as its package management utility.
     :commands vterm
     :config
     (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")
-    (setq vterm-max-scrollback 10000))
+    (setq vterm-max-scrollback 10000)
+    (add-hook 'term-exec-hook
+              (function
+               (lambda ()
+                 (set-buffer-process-coding-system 'utf-8-unix 'utf-8-unix)))))
 
-  ;; Fix broken prompt and completion prompts while running fish shell
-  (with-eval-after-load 'vterm(add-hook 'term-exec-hook
-                                        (function
-                                         (lambda ()
-                                           (set-buffer-process-coding-system 'utf-8-unix 'utf-8-unix)))))
 #+END_SRC
 
 * Helpful
@@ -426,12 +330,16 @@ My configuration uses src_elisp{use-package} as its package management utility.
   (use-package doom-modeline
     :ensure t
     :init (doom-modeline-mode 1)
-    :custom ((doom-modeline-height 30)))
-  (setq doom-modeline-indent-info nil)
-  (setq doom-modeline-mu4e t)
-  (setq doom-modeline--battery-status t)
-  (setq doom-modeline-time-icon t)
-      (display-battery-mode 1)
+    :custom (
+             (doom-modeline-height 30)
+             (doom-modeline-indent-info nil)
+             (doom-modeline-mu4e t)
+             (doom-modeline-battery t)
+             (doom-modeline-time t)
+             (doom-modeline-env-version nil)
+             (doom-modeline-buffer-encoding nil)
+             (doom-modeline-buffer-file-name-style 'truncate-up-to-project)
+             (display-battery-mode 1)))
 #+END_SRC
 
 * Dired
@@ -442,40 +350,23 @@ My configuration uses src_elisp{use-package} as its package management utility.
 
   (use-package all-the-icons-dired
     :ensure t
-    :hook (dired-mode
-           . all-the-icons-dired-mode))
+    :hook (dired-mode . all-the-icons-dired-mode))
+
+  (use-package dired-single
+    :ensure t)
 
   (setf dired-kill-when-opening-new-dired-buffer t)
-#+END_SRC
 
-* Customized Variables
-#+BEGIN_SRC elisp
-  (custom-set-variables
-   ;; custom-set-variables was added by Custom.
-   ;; If you edit it by hand, you could mess it up, so be careful.
-   ;; Your init file should contain only one such instance.
-   ;; If there is more than one, they won't work right.
-   '(custom-safe-themes
-     '("7a424478cb77a96af2c0f50cfb4e2a88647b3ccca225f8c650ed45b7f50d9525" "991ca4dbb23cab4f45c1463c187ac80de9e6a718edc8640003892a2523cb6259" "da75eceab6bea9298e04ce5b4b07349f8c02da305734f7c0c8c6af7b5eaa9738" "b99e334a4019a2caa71e1d6445fc346c6f074a05fcbb989800ecbe54474ae1b0" "636b135e4b7c86ac41375da39ade929e2bd6439de8901f53f88fde7dd5ac3561" "1a1ac598737d0fcdc4dfab3af3d6f46ab2d5048b8e72bc22f50271fd6d393a00" "251ed7ecd97af314cd77b07359a09da12dcd97be35e3ab761d4a92d8d8cf9a71" "4ff1c4d05adad3de88da16bd2e857f8374f26f9063b2d77d38d14686e3868d8d" default))
-   '(package-selected-packages
-     '(elfeed multiple-cursors fontaine clang-format mu4e utop merlin tuareg xkcd lsp-java dired-single yafolding org-bullets auctex math-preview pdf-tools latex-math-preview typescript-mode flycheck-rust rainbow-delimiters tree-sitter-langs tree-sitter gruvbox-theme all-the-icons-dired atom-one-dark-theme suscolors-theme subatomic-theme weyland-yutani-theme nano-theme yasnippet-snippets yasnippet vterm dirvish lsp-treemacs lsp-ui helpful company ivy-rich company-box lsp-mode flycheck rustic magit counsel-projectile projectile general dashboard which-key all-the-icons beacon good-scroll doom-themes use-package doom-modeline diminish counsel)))
-  (custom-set-faces
-   ;; custom-set-faces was added by Custom.
-   ;; If you edit it by hand, you could mess it up, so be careful.
-   ;; Your init file should contain only one such instance.
-   ;; If there is more than one, they won't work right.
-   )
 #+END_SRC
 
 * Doom Themes
 #+BEGIN_SRC elisp
   (use-package doom-themes
-    :ensure t
-    :config
-    ;; Global settings (defaults)
-    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-          doom-themes-enable-italic t) ; if nil, italics is universally disabled
-    (load-theme 'doom-solarized-dark t))
+    :ensure t)
+  (setq doom-themes-enable-bold t)
+  (setq doom-themes-enable-italic t)
+
+  (load-theme 'doom-solarized-dark t)
 #+END_SRC
 
 * Vanilla Emacs Customizations
@@ -483,6 +374,7 @@ My configuration uses src_elisp{use-package} as its package management utility.
   ;; Refresh a file edited outside of emacs
   (global-auto-revert-mode 1)
 
+  ;; Improve jumping between words in pascalCase
   (global-subword-mode 1)
 
   ;; Auto close (), "", {}
@@ -551,54 +443,29 @@ My configuration uses src_elisp{use-package} as its package management utility.
     (setq dashboard-items '(
                             ;;(recents  . 4)
                             ;;(projects . 3)
-                            ;;(agenda . 3)
-                            (bookmarks . 3)
+                            (agenda . 3)
+                            (bookmarks . 1)
                             )))
-        ;;(setq dashboard-startup-banner (mm/random-dashboard-image-path)
+  ;;(setq dashboard-startup-banner (mm/random-dashboard-image-path)
 #+END_SRC
 
-* LSP, Company
+* LSP
 #+BEGIN_SRC elisp
   (use-package lsp-mode
     :ensure t
     :commands (lsp lsp-deferred)
+    :hook (lsp-mode . my-lsp-mode-hook)
     :init
     (setq lsp-keymap-prefix "C-c l")
     :config
-    (lsp-enable-which-key-integration t))
-
-  ;; Increase the amount of data which Emacs reads from the process.
-  ;; Default value is causing a slowdown, it's too low to handle server responses.
-  (setq read-process-output-max (*(* 1024 1024) 3)) ;; 3mb
+    (lsp-enable-which-key-integration t)
+    (define-key lsp-mode-map (kbd "C-c l = =") 'mm/match-lsp-formatting)
+    ;; Increase the amount of data which Emacs reads from the process.
+    ;; Default value is causing a slowdown, it's too low to handle server responses. 3mb
+    (setq read-process-output-max (*(* 1024 1024) 3)))
 
   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
   (setq lsp-headerline-breadcrumb-enable nil)
-
-  (add-hook 'lsp-mode-hook #'yas-minor-mode-on)
-  (add-hook 'lsp-mode-hook #'tree-sitter-hl-mode)
-  (with-eval-after-load 'lsp-mode
-    (define-key lsp-mode-map (kbd "C-c l = =") 'mm/match-lsp-formatting))
-
-  ;; Better completions
-  (use-package company
-    :ensure t
-    :after lsp-mode
-    :hook (lsp-mode . company-mode)
-    :bind (:map company-active-map
-                ("<tab>" . company-complete-selection))
-    (:map lsp-mode-map
-          ("<tab>" . company-indent-or-complete-common))
-    :custom
-    (company-minimum-prefix-length 1)
-    (company-idle-delay 0.0))
-  (setq company-tooltip-maximum-width 60)
-  (setq company-tooltip-margin 3)
-
-  ;; Better looking completions
-  (use-package company-box
-    :ensure t
-    :hook (company-mode . company-box-mode))
-  (setq company-box-doc-enable nil)
 
   (use-package lsp-ui
     :hook (lsp-mode . lsp-ui-mode)
@@ -606,23 +473,31 @@ My configuration uses src_elisp{use-package} as its package management utility.
     (setq lsp-ui-doc-enable t)
     (setq lsp-ui-doc-position 'bottom))
 
-  (use-package lsp-treemacs
-    :after lsp)
-  (treemacs-project-follow-mode t)
-  (setq treemacs--project-follow-delay 0.1)
+#+END_SRC
 
-  (with-eval-after-load 'lsp-mode
-    (yas-global-mode))
+* Company
+#+BEGIN_SRC elisp
+  ;; Better completions
+  (use-package company
+    :ensure t
+    :after lsp-mode
+    :hook (lsp-mode . company-mode)
+    :bind (
+           :map company-active-map
+           ("<tab>" . company-complete-selection)
+           :map lsp-mode-map
+           ("<tab>" . company-indent-or-complete-common))
+    :custom
+    (company-minimum-prefix-length 1)
+    (company-idle-delay 0.0)
+    (company-tooltip-maximum-width 60)
+    (company-tooltip-margin 3))
 
-  (with-eval-after-load 'lsp-language-id-configuration
-    (add-to-list 'lsp-language-id-configuration '(".*\\.R$" . "r"))
-    (add-to-list 'lsp-language-id-configuration '(ess-mode . "r")))
-
-  (with-eval-after-load 'lsp-mode
-    (lsp-register-client (make-lsp-client :new-connection
-                                          (lsp-stdio-connection '("R" "--slave" "-e" "languageserver::run()"))
-                                          :major-modes '(ess-r-mode inferior-ess-r-mode ess-mode)
-                                          :server-id 'lsp-R)))
+  ;; Better looking completions
+  (use-package company-box
+    :ensure t
+    :hook (company-mode . company-box-mode)
+    :custom (company-box-doc-enable nil))
 #+END_SRC
 
 * Programming Languages Setup
@@ -636,55 +511,44 @@ My configuration uses src_elisp{use-package} as its package management utility.
     (require 'lsp-rust)
     (setq lsp-rust-analyzer-completion-add-call-parenthesis t)
     (setq rust-indent-method-chain t))
+
   (use-package flycheck-rust
     :ensure t)
 #+END_SRC
 
 ** JavaScript/TypeScript
 #+BEGIN_SRC elisp
-    (use-package typescript-mode
-      :mode "\\.ts\\'"
-      :mode "\\.js\\'"
-      :hook (typescript-mode . tree-sitter-hl-mode)
-      :config
-      (setq typescript-indent-level 2)
-      (setq js-indent-level 2)
-      (add-hook 'js-mode-hook 'lsp)
-      (add-hook 'typescript-mode-hook 'lsp))
+  (use-package typescript-mode
+    :mode "\\.ts\\'"
+    :mode "\\.js\\'"
+    :config
+    (setq typescript-indent-level 2)
+    (setq js-indent-level 2)
+    (add-hook 'js-mode-hook 'lsp)
+    (add-hook 'typescript-mode-hook 'lsp))
 #+END_SRC
 
 ** C/C++
 #+BEGIN_SRC elisp
-  (add-hook 'c-mode-hook 'lsp)
-  (add-hook 'c-mode-hook 'tree-sitter-hl-mode)
-  (setq-default c-basic-offset 4)
-  (add-hook 'c++-mode-hook 'rebind)
-  (add-hook 'c++-mode-hook 'tree-sitter-hl-mode)
-  (add-hook 'c++-mode-hook 'lsp)
-  (setq-default c++-basic-offset 4)
+  (add-hook 'c-mode-hook 'my-c-mode-hook)
+  (add-hook 'c++-mode-hook 'my-c++-mode-hook)
 
   (use-package clang-format
-    :ensure t)
-  (setq-default clang-format-fallback-style "WebKit")
+    :ensure t
+    :custom
+    (clang-format-fallback-style "WebKit"))
 #+END_SRC
 
 ** Java
 #+BEGIN_SRC elisp
   (use-package lsp-java
-    :hook java-mode-hook)
-  (add-hook 'java-mode-hook 'tree-sitter-hl-mode)
-  (add-hook 'java-mode-hook 'lsp)
+    :ensure t
+    :hook (java-mode-hook . lsp-mode))
 #+END_SRC
 
 ** LaTeX
 #+BEGIN_SRC elisp
-  (add-hook 'LaTeX-mode-hook
-            (local-set-key (kbd "C-c C-. M-c") 'mm/latex-compile)
-            (local-set-key (kbd "C-c C-. M-v") 'mm/latex-compile-and-view)
-            (lambda () (local-unset-key (kbd "C-j"))))
-  (setq TeX-auto-save t)
-  (setq TeX-parse-self t) 
-  (add-hook 'tex-mode-hook 'lsp)
+  (add-hook 'LaTeX-mode-hook 'my-LaTeX-mode-hook)
 #+END_SRC
 
 ** OCaml
@@ -708,21 +572,25 @@ My configuration uses src_elisp{use-package} as its package management utility.
 #+END_SRC
 ** Common Lisp
 #+BEGIN_SRC elisp
-  (load (expand-file-name "~/quicklisp/slime-helper.el"))
+
   ;; Replace "sbcl" with the path to your implementation
   (setq inferior-lisp-program "/usr/bin/sbcl")
   (use-package slime
-    :ensure t)
+    :defer t
+    :init
+    (load (expand-file-name "~/quicklisp/slime-helper.el")))
 #+END_SRC
 
 * Org
+** Org
 #+BEGIN_SRC elisp
   (defun mm/org-mode-setup ()
     (setq org-startup-indented t)
     (org-indent-mode)
     (variable-pitch-mode 1) ;;enable a non-monospace font
     (auto-fill-mode 0)
-    (visual-line-mode 1))
+    (visual-line-mode 1)
+    (local-set-key (kbd "C-j") nil))
 
   (use-package org
     :ensure t
@@ -741,11 +609,12 @@ My configuration uses src_elisp{use-package} as its package management utility.
   (require 'org-indent)
 
   (set-face-attribute 'org-document-title nil :font "Iosevka Aile" :weight 'bold :height 1.3)
+
   (with-eval-after-load 'org-faces
-    (dolist (face '((org-level-1 . 1.25)
-                    (org-level-2 . 1.15)
-                    (org-level-3 . 1.05)
-                    (org-level-4 . 1.0)
+    (dolist (face '((org-level-1 . 1.3)
+                    (org-level-2 . 1.2)
+                    (org-level-3 . 1.1)
+                    (org-level-4 . 1.05)
                     (org-level-5 . 1.0)
                     (org-level-6 . 1.0)
                     (org-level-7 . 1.1)
@@ -774,17 +643,16 @@ My configuration uses src_elisp{use-package} as its package management utility.
     :ensure t
     :hook (org-mode . mm/org-mode-visual-fill))
 
-  (use-package org-download
-    :ensure t
-    :hook org-mode-hook)
-
   (add-hook 'org-mode-hook
-            (lambda () (local-set-key (kbd "C-j") nil)))
+            (lambda () ))
 
   (with-eval-after-load 'org-mode-map (define-key org-mode-map (kbd "C-j") nil))
 
-(setq agenda-dirs '("~/Semester-4" "~/Documents/org"))
-(setq org-agenda-files (-flatten-n 1 (mapcar (lambda (dir) (directory-files-recursively dir "\\.org$" nil nil t)) agenda-dirs)))
+#+END_SRC
+** Org Agenda
+#+BEGIN_SRC elisp
+  (setq agenda-dirs '("~/Documents/Notes/Semester-5" "~/Documents/org"))
+  (setq org-agenda-files (-flatten-n 1 (mapcar (lambda (dir) (directory-files-recursively dir "\\.org$" nil nil t)) agenda-dirs)))
 
   (setq org-agenda-start-with-log-mode t)
   (setq org-log-done 'time)
@@ -850,12 +718,9 @@ My configuration uses src_elisp{use-package} as its package management utility.
             (todo "CANC"
                   ((org-agenda-overriding-header "Cancelled Projects")
                    (org-agenda-files org-agenda-files)))))))
-
-
 #+END_SRC
-* org-roam
+** Org Roam
 #+BEGIN_SRC elisp
-
   (use-package org-roam
     :ensure t
     :custom
@@ -865,7 +730,6 @@ My configuration uses src_elisp{use-package} as its package management utility.
            ("C-c n i" . org-roam-node-insert))
     :config
     (org-roam-setup))
-
 #+END_SRC
 
 * mu4e
@@ -880,11 +744,11 @@ My configuration uses src_elisp{use-package} as its package management utility.
   (setq mu4e-drafts-folder "/drafts")
   (setq mu4e-trash-folder  "/trash")
 
-  (setq   mu4e-maildir-shortcuts
-          '((:maildir "/archive" :key ?a)
-            (:maildir "/inbox"   :key ?i)
-            (:maildir "/work"    :key ?w)
-            (:maildir "/sent"    :key ?s)))
+  (setq mu4e-maildir-shortcuts
+        '((:maildir "/archive" :key ?a)
+          (:maildir "/inbox"   :key ?i)
+          (:maildir "/work"    :key ?w)
+          (:maildir "/sent"    :key ?s)))
 
   (setq mu4e-get-mail-command "offlineimap")
   (setq mu4e-compose-reply-to-address "michal.milek@student.put.poznan.pl"
@@ -914,10 +778,8 @@ My configuration uses src_elisp{use-package} as its package management utility.
 
 * Elfeed
 #+BEGIN_SRC elisp
-
   (use-package elfeed
-    :ensure t
-    :defer)
+    :ensure t)
   (setq elfeed-feeds
         '(
           "https://blog.rust-lang.org/feed.xml"
@@ -926,7 +788,6 @@ My configuration uses src_elisp{use-package} as its package management utility.
           "https://sachachua.com/blog/category/emacs-news/feed/"
           ))
 #+END_SRC
-
 * Other
 #+BEGIN_SRC elisp
   (shell-command "/usr/bin/xmodmap /home/michal/.Xmodmap")
@@ -935,16 +796,14 @@ My configuration uses src_elisp{use-package} as its package management utility.
 * Keyfreq
 #+BEGIN_SRC elisp
   (use-package keyfreq
-    :ensure t)
-  (keyfreq-mode 1)
-  (keyfreq-autosave-mode 1)
-  (setq keyfreq-excluded-commands
-        '(self-insert-command
-          lsp-ui-doc--handle-mouse-movement
-          mwheel-scroll
-          ;;forward-char
-          ;;backward-char
-          ;;previous-line
-          ;;next-line
-          ))
+    :ensure t
+    :config
+    (keyfreq-mode 1)
+    (keyfreq-autosave-mode 1)
+    (setq keyfreq-excluded-commands
+          '(self-insert-command
+            lsp-ui-doc--handle-mouse-movement
+            mwheel-scroll
+            )))
 #+END_SRC
+
