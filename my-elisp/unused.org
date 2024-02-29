@@ -1,0 +1,14 @@
+* Unused Emacs Lisp code
+I don't want it cluttering my init.el, but it may become useful again in the future.
+** R language setup
+#+BEGIN_SRC elisp
+  (with-eval-after-load 'lsp-language-id-configuration
+    (add-to-list 'lsp-language-id-configuration '(".*\\.R$" . "r"))
+    (add-to-list 'lsp-language-id-configuration '(ess-mode . "r")))
+
+  (with-eval-after-load 'lsp-mode
+    (lsp-register-client (make-lsp-client :new-connection
+                                          (lsp-stdio-connection '("R" "--slave" "-e" "languageserver::run()"))
+                                          :major-modes '(ess-r-mode inferior-ess-r-mode ess-mode)
+                                          :server-id 'lsp-R)))
+#+END_SRC
