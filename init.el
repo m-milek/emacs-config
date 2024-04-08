@@ -26,6 +26,7 @@
 (load-file "/home/michal/.emacs.d/my-elisp/char-summary.el")
 (load-file "/home/michal/.emacs.d/my-elisp/fixes.el")
 (load-file "/home/michal/.emacs.d/my-elisp/my-hooks.el")
+(load-file "/home/michal/.emacs.d/my-elisp/dashboard-fix.el")
 
 (setq inhibit-startup-message t)
 (scroll-bar-mode 0);
@@ -138,6 +139,8 @@
 (global-set-key (kbd "C-.") 'mc/mark-next-like-this)
 (global-set-key (kbd "C-,") 'mc/mark-previous-like-this)
 (global-set-key (kbd "C-c C-,") 'mc/mark-all-like-this)
+
+(global-set-key (kbd "C-c a") 'org-agenda)
 
 ;;(global-unset-key (kbd "<right>"))
 ;;(global-unset-key (kbd "<left>"))
@@ -342,6 +345,13 @@
 
 (load-theme 'doom-solarized-dark t)
 
+(use-package docker
+  :ensure t
+  :bind ("C-c d" . docker))
+
+(use-package dockerfile-mode
+  :ensure t)
+
 ;; Refresh a file edited outside of emacs
 (global-auto-revert-mode 1)
 
@@ -403,6 +413,7 @@
     (setq dashboard-set-file-icons t)
     (setq dashboard-set-heading-icons t)
     (setq dashboard-set-footer nil)
+    (setq dashboard-agenda-sort-strategy '(time-up))
     ;;(setq dashboard-startup-banner (mm/random-dashboard-image-path))
     (setq dashboard-startup-banner 'official)
     )
@@ -410,9 +421,9 @@
   (dashboard-setup-startup-hook)
   (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
   (setq dashboard-items '(
-                          (recents  . 4)
+                          (recents  . 3)
                           (projects . 3)
-                          ;;(agenda . 3)
+                          (agenda . 4)
                           (bookmarks . 3)
                           )))
 ;;(setq dashboard-startup-banner (mm/random-dashboard-image-path)
@@ -438,6 +449,24 @@
   :config
   (setq lsp-ui-doc-enable t)
   (setq lsp-ui-doc-position 'bottom))
+
+(use-package quelpa
+  :ensure t)
+(use-package quelpa-use-package
+  :ensure t)
+
+(use-package copilot
+  :quelpa (copilot :fetcher github
+                   :repo "copilot-emacs/copilot.el"
+                   :branch "main"
+                   :files ("dist" "*.el"))
+  :ensure t)
+;; you can utilize :map :hook and :config to customize copilot
+
+(add-hook 'prog-mode-hook 'copilot-mode)
+(global-set-key (kbd "C-M-=") 'copilot-next-completion)
+(global-set-key (kbd "C-M--") 'copilot-previous-completion)
+(global-set-key (kbd "C-M-SPC") 'copilot-accept-completion)
 
 ;; Completions and how to make them pretty
 (use-package company
@@ -708,7 +737,7 @@
 
 (with-eval-after-load 'org-mode-map (define-key org-mode-map (kbd "C-j") nil))
 
-(setq agenda-dirs '("~/Documents/Notes/Semester-5" "~/Documents/org"))
+(setq agenda-dirs '("~/Documents/Notes/Semester-6" "~/Documents/org" "~/Programming"))
 (setq org-agenda-files (-flatten-n 1 (mapcar (lambda (dir) (directory-files-recursively dir "\\.org$" nil nil t)) agenda-dirs)))
 
 (setq org-agenda-start-with-log-mode nil)
@@ -731,7 +760,7 @@
 ;; Configure custom agenda views
 (setq org-agenda-custom-commands
       '(("d" "Dashboard"
-         ((agenda "" ((org-deadline-warning-days 14)))
+         ((agenda "" ((org-deadline-warning-days 90)))
           (todo "NEXT"
                 ((org-agenda-overriding-header "Next Tasks")))
           (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
