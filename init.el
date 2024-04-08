@@ -316,7 +316,6 @@
   :custom (
            (doom-modeline-height 30)
            (doom-modeline-indent-info nil)
-           (doom-modeline-mu4e t)
            (doom-modeline-time t)
            (doom-modeline-battery t)
            (doom-modeline-time t)
@@ -378,11 +377,6 @@
                 vterm-mode-hook
                 rustic-cargo-run-mode-hook
                 rustic-cargo-test-mode-hook
-                mu4e-headers-mode-hook
-                mu4e-view-mode-hook
-                mu4e-main-mode-hook
-                mu4e-org-mode-hook
-                mu4e-compose-mode-hook
                 eww-mode-hook
                 ))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
@@ -666,7 +660,6 @@
 (add-hook 'go-mode-hook 'lsp)
 (add-hook 'go-mode-hook (lambda () (setq tab-width 4)))
 
-;; Replace "sbcl" with the path to your implementation
 (setq inferior-lisp-program "/usr/bin/sbcl")
 (use-package slime
   :defer t
@@ -756,115 +749,6 @@
         ("@put" . ?p)
         ("note" . ?n)
         ("idea" . ?i)))
-
-;; Configure custom agenda views
-(setq org-agenda-custom-commands
-      '(("d" "Dashboard"
-         ((agenda "" ((org-deadline-warning-days 90)))
-          (todo "NEXT"
-                ((org-agenda-overriding-header "Next Tasks")))
-          (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
-
-        ("n" "Next Tasks"
-         ((todo "NEXT"
-                ((org-agenda-overriding-header "Next Tasks")))))
-
-        ("p" "PUT Tasks" tags-todo "+put")
-
-        ;; Low-effort next actions
-        ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
-         ((org-agenda-overriding-header "Low Effort Tasks")
-          (org-agenda-max-todos 20)
-          (org-agenda-files org-agenda-files)))
-
-        ("w" "Workflow Status"
-         ((todo "WAIT"
-                ((org-agenda-overriding-header "Waiting on External")
-                 (org-agenda-files org-agenda-files)))
-          (todo "REVIEW"
-                ((org-agenda-overriding-header "In Review")
-                 (org-agenda-files org-agenda-files)))
-          (todo "PLAN"
-                ((org-agenda-overriding-header "In Planning")
-                 (org-agenda-todo-list-sublevels nil)
-                 (org-agenda-files org-agenda-files)))
-          (todo "BACKLOG"
-                ((org-agenda-overriding-header "Project Backlog")
-                 (org-agenda-todo-list-sublevels nil)
-                 (org-agenda-files org-agenda-files)))
-          (todo "READY"
-                ((org-agenda-overriding-header "Ready for Work")
-                 (org-agenda-files org-agenda-files)))
-          (todo "ACTIVE"
-                ((org-agenda-overriding-header "Active Projects")
-                 (org-agenda-files org-agenda-files)))
-          (todo "COMPLETED"
-                ((org-agenda-overriding-header "Completed Projects")
-                 (org-agenda-files org-agenda-files)))
-          (todo "CANC"
-                ((org-agenda-overriding-header "Cancelled Projects")
-                 (org-agenda-files org-agenda-files)))))))
-
-(use-package org-roam
-  :ensure t
-  :custom
-  (org-roam-directory "~/Documents/RoamNotes")
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
-         ("C-c n i" . org-roam-node-insert))
-  :config
-  (org-roam-setup))
-
-(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
-
-(require 'mu4e)
-
-(setq mail-user-agent 'mu4e-user-agent)
-
-(setq mu4e-sent-folder   "/sent")
-(setq mu4e-drafts-folder "/drafts")
-(setq mu4e-trash-folder  "/trash")
-
-(setq mu4e-maildir-shortcuts
-      '((:maildir "/archive" :key ?a)
-        (:maildir "/inbox"   :key ?i)
-        (:maildir "/work"    :key ?w)
-        (:maildir "/sent"    :key ?s)))
-
-(setq mu4e-get-mail-command "offlineimap")
-(setq mu4e-compose-reply-to-address "michal.milek@student.put.poznan.pl"
-      user-mail-address "michal.milek@student.put.poznan.pl"
-      user-full-name  "Michał Miłek")
-(setq mu4e-compose-signature
-      "Michał Miłek\nhttp://www.put.poznan.pl\n")
-(setq mu4e-compose-signature-auto-include nil)
-
-
-;; smtp mail setting; these are the same that `gnus' uses.
-(setq
- message-send-mail-function   'smtpmail-send-it
- smtpmail-default-smtp-server "poczta.student.put.poznan.pl"
- smtpmail-smtp-server         "poczta.student.put.poznan.pl"
- smtpmail-local-domain        "student.put.poznan.pl"
- smtpmail-smtp-service        587
- )
-
-(setq mu4e-use-fancy-chars nil)
-(setq mu4e-view-show-images t)
-(setq mu4e-update-interval 600)
-
-(use-package mu4e-alert
-  :ensure t)
-
-(use-package elfeed
-  :ensure t)
-(setq elfeed-feeds
-      '(
-        "https://blog.rust-lang.org/feed.xml"
-        ;;"http://www.reddit.com/r/emacs/.rss"
-        "http://blogs.law.harvard.edu/tech/rss"
-        "https://sachachua.com/blog/category/emacs-news/feed/"
-        ))
 
 (shell-command "/usr/bin/xmodmap /home/michal/.Xmodmap")
 
