@@ -39,15 +39,15 @@
 
 (set-face-attribute 'variable-pitch nil
                     :font "Iosevka Aile"
-                    :height 150)
+                    :height 120)
 
 (set-face-attribute 'default nil
                     :font "Source Code Pro"
-                    :height 150)
+                    :height 120)
 
 (set-face-attribute 'fixed-pitch nil
                     :font "Source Code Pro"
-                    :height 150)
+                    :height 120)
 
 (use-package diminish)
 
@@ -166,11 +166,11 @@
   :config
   (tree-sitter-require 'tsx)
   (global-tree-sitter-mode)
-  ;;(setq treesit-language-source-alist '((typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")))
-  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
+  (add-to-list 'treesit-language-source-alist
+        '((typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")))
   (add-to-list 'tree-sitter-major-mode-language-alist '(jtsx-jsx-mode . tsx))
   (add-to-list 'tree-sitter-major-mode-language-alist '(jtsx-tsx-mode . tsx)))
-;;(add-to-list 'tree-sitter-major-mode-language-alist '(typescript-tsx-mode . tsx))
+(add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
 
 ;; Snippets of code (all 3 need to be installed with package-install RET package-name RET)
 (use-package yasnippet
@@ -762,3 +762,16 @@
           lsp-ui-doc--handle-mouse-movement
           mwheel-scroll
           )))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(cuda-mode image+ flycheck-clang-tidy yatemplate yasnippet-snippets yafolding which-key vterm visual-fill-column typescript-mode tree-sitter-langs toml-mode slime rustic restclient rainbow-delimiters quelpa-use-package prettier-js pdf-tools org-bullets multiple-cursors move-dup magit lsp-ui lsp-java keyfreq jtsx ivy-rich helpful goto-line-preview go-mode flycheck-rust ess emmet-mode doom-themes doom-modeline dockerfile-mode docker dired-single diminish dashboard counsel-projectile copilot company-box clang-format beacon auctex all-the-icons-dired)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
