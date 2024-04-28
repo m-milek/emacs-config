@@ -1,4 +1,5 @@
 .cache/
+projects
 .dap-breakpoints
 *.lsp-session*
 *.~undo-tree~

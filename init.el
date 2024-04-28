@@ -1,3 +1,5 @@
+(let ((file-name-handler-alist nil)) ;; to improve startup time
+
 (eval-when-compile
   (require 'cl))
 (setq gc-cons-threshold 100000000)
@@ -161,7 +163,7 @@
   :ensure t)
 
 (use-package tree-sitter-langs
-  :defer
+  :defer t
   :ensure t
   :config
   (tree-sitter-require 'tsx)
@@ -175,7 +177,7 @@
 ;; Snippets of code (all 3 need to be installed with package-install RET package-name RET)
 (use-package yasnippet
   :ensure t
-  :defer
+  :defer t
   :config
   (yas-global-mode)
   (use-package yasnippet-snippets
@@ -185,6 +187,7 @@
 ;; To add ts snippets jtsx modes create a .yas-parents file in snippets directory
 ;; in .emacs.d directory and write 'typescript-mode'
 (use-package yatemplate
+  :defer t
   :ensure t)
 
 (use-package multiple-cursors
@@ -249,6 +252,7 @@
 
 
 (use-package treemacs
+  :defer t
   :ensure t)
 
 (use-package rainbow-delimiters
@@ -258,7 +262,7 @@
   :ensure auctex)
 
 (use-package pdf-tools
-  :ensure t
+  :load-path "site-lisp/pdf-tools/lisp"
   :magic ("%PDF" . pdf-view-mode)
   :config
   (pdf-tools-install :no-query))
@@ -342,7 +346,7 @@
 (setq doom-themes-enable-bold t)
 (setq doom-themes-enable-italic t)
 
-(load-theme 'doom-solarized-dark t)
+(load-theme 'doom-spacegrey t)
 
 (use-package docker
   :ensure t
@@ -450,14 +454,35 @@
   :ensure t)
 
 (use-package copilot
-  :quelpa (copilot :fetcher github
-                   :repo "copilot-emacs/copilot.el"
-                   :branch "main"
-                   :files ("dist" "*.el"))
-  :ensure t)
-;; you can utilize :map :hook and :config to customize copilot
+  ;; :quelpa (copilot :fetcher github
+  ;;                  :repo "copilot-emacs/copilot.el"
+  ;;                  :branch "main"
+  ;;                  :files ("dist" "*.el"))
+  :ensure t
+  :config
+  ;; https://robert.kra.hn/posts/2023-02-22-copilot-emacs-setup/
+  (defvar rk/no-copilot-modes '(shell-mode
+                                dashboard-mode
+                                inferior-python-mode
+                                eshell-mode
+                                term-mode
+                                vterm-mode
+                                comint-mode
+                                compilation-mode
+                                debugger-mode
+                                dired-mode-hook
+                                compilation-mode-hook
+                                flutter-mode-hook
+                                minibuffer-mode-hook)
+    "Modes in which copilot is inconvenient.")
+  (defun rk/copilot-disable-predicate ()
+    "When copilot should not automatically show completions."
+    (member major-mode rk/no-copilot-modes))
 
-(add-hook 'prog-mode-hook 'copilot-mode)
+  (add-to-list 'copilot-disable-predicates #'rk/copilot-disable-predicate)
+  )
+
+;;(add-hook 'lsp-mode-hook 'copilot-mode)
 (global-set-key (kbd "C-M-=") 'copilot-next-completion)
 (global-set-key (kbd "C-M--") 'copilot-previous-completion)
 (global-set-key (kbd "C-M-SPC") 'copilot-accept-completion)
@@ -482,6 +507,25 @@
   :ensure t
   :hook (company-mode . company-box-mode))
 (setq company-box-doc-enable t)
+
+(use-package undo-tree
+  :ensure t
+  :config
+  ;; Prevent undo tree files from polluting your git repo
+  (global-undo-tree-mode)
+  (setq undo-tree-auto-save-history t)
+  (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo"))))
+
+(use-package git-gutter
+  :hook (prog-mode . git-gutter-mode)
+  :config
+  (setq git-gutter:update-interval 0.02))
+
+(use-package git-gutter-fringe
+  :config
+  (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
 
 ;;emmet mode
 (use-package emmet-mode
@@ -762,16 +806,11 @@
           lsp-ui-doc--handle-mouse-movement
           mwheel-scroll
           )))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(cuda-mode image+ flycheck-clang-tidy yatemplate yasnippet-snippets yafolding which-key vterm visual-fill-column typescript-mode tree-sitter-langs toml-mode slime rustic restclient rainbow-delimiters quelpa-use-package prettier-js pdf-tools org-bullets multiple-cursors move-dup magit lsp-ui lsp-java keyfreq jtsx ivy-rich helpful goto-line-preview go-mode flycheck-rust ess emmet-mode doom-themes doom-modeline dockerfile-mode docker dired-single diminish dashboard counsel-projectile copilot company-box clang-format beacon auctex all-the-icons-dired)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+
+(use-package esup
+  :defer t
+  :ensure t
+  :config
+  (setq esup-depth 0))
+
+)
