@@ -53,7 +53,7 @@ This makes for a minimal Emacs UI, without distracting icons, menus and bars.
   (scroll-bar-mode 0);
   (tool-bar-mode 0)
   (tooltip-mode 0);
-  (set-fringe-mode 0);
+  (set-fringe-mode 0) ;; later enabled for git-gutter-mode
   (menu-bar-mode 0)
   (setq visible-bell nil)
   (global-visual-line-mode -1)
@@ -193,6 +193,8 @@ Setup different font faces.
   (global-set-key (kbd "C-r") 'mm/go-to-saved-point)
   (global-set-key (kbd "C-M-s") 'mm/save-point)
   (global-set-key (kbd "C-`") 'mm/toggle-vterm-below)
+
+  (global-set-key (kbd "C-x f") 'mm/fzf-find-file-in-dir)
 #+END_SRC
 
 ** Local
@@ -247,7 +249,7 @@ Setup different font faces.
   (use-package beacon
     :ensure t
     :config
-    (beacon-mode nil))
+    (beacon-mode 0))
 
   (use-package which-key
     :ensure t
@@ -330,6 +332,9 @@ Setup different font faces.
 
   (use-package ace-window
     :ensure t
+    :config
+    (setq aw-ignore-on t)
+    (setq aw-ignored-buffers '(image-mode))
     :bind
     ("M-o" . ace-window))
 
@@ -341,6 +346,11 @@ Setup different font faces.
   (use-package compat
     :ensure t)
 
+  (use-package fzf
+    :ensure t
+    :config
+    (setq fzf/position-bottom t))
+  
 #+END_SRC
 
 * Vterm
@@ -351,6 +361,7 @@ Setup different font faces.
     :config
     (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")
     (setq vterm-max-scrollback 10000)
+    (setq vterm-timer-delay nil)
     (add-hook 'term-exec-hook
               (function
                (lambda ()
@@ -472,6 +483,13 @@ Setup different font faces.
   (setq ivy-extra-directories nil)
 
   (pixel-scroll-precision-mode 1)
+
+  ;; always revert files with those extensions without asking
+  (setq mm/always-revert-list
+        '("png" "jpg" "jpeg" "gif" "pdf"))
+  (setq revert-without-query (mapcar (lambda (ext) (concat ".*\\." ext)) mm/always-revert-list))
+
+  (winner-mode)
 
 #+END_SRC
 
@@ -606,12 +624,15 @@ Setup different font faces.
 * Git Gutter
 #+BEGIN_SRC elisp
   (use-package git-gutter
+    :ensure t
     :hook (prog-mode . git-gutter-mode)
     :config
     (setq git-gutter:update-interval 0.02))
 
   (use-package git-gutter-fringe
+    :ensure t
     :config
+    (set-fringe-mode 8)
     (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
     (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
     (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))

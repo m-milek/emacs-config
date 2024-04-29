@@ -34,7 +34,7 @@
 (scroll-bar-mode 0);
 (tool-bar-mode 0)
 (tooltip-mode 0);
-(set-fringe-mode 0);
+(set-fringe-mode 0) ;; later enabled for git-gutter-mode
 (menu-bar-mode 0)
 (setq visible-bell nil)
 (global-visual-line-mode -1)
@@ -157,6 +157,8 @@
 (global-set-key (kbd "C-M-s") 'mm/save-point)
 (global-set-key (kbd "C-`") 'mm/toggle-vterm-below)
 
+(global-set-key (kbd "C-x f") 'mm/fzf-find-file-in-dir)
+
 (define-key emacs-lisp-mode-map (kbd "C-x M-e") 'eval-buffer)
 
 (use-package tree-sitter
@@ -199,7 +201,7 @@
 (use-package beacon
   :ensure t
   :config
-  (beacon-mode nil))
+  (beacon-mode 0))
 
 (use-package which-key
   :ensure t
@@ -282,6 +284,9 @@
 
 (use-package ace-window
   :ensure t
+  :config
+  (setq aw-ignore-on t)
+  (setq aw-ignored-buffers '(image-mode))
   :bind
   ("M-o" . ace-window))
 
@@ -293,12 +298,18 @@
 (use-package compat
   :ensure t)
 
+(use-package fzf
+  :ensure t
+  :config
+  (setq fzf/position-bottom t))
+
 (use-package vterm
   :ensure t
   :commands vterm
   :config
   (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")
   (setq vterm-max-scrollback 10000)
+  (setq vterm-timer-delay nil)
   (add-hook 'term-exec-hook
             (function
              (lambda ()
@@ -401,6 +412,13 @@
 (setq ivy-extra-directories nil)
 
 (pixel-scroll-precision-mode 1)
+
+;; always revert files with those extensions without asking
+(setq mm/always-revert-list
+      '("png" "jpg" "jpeg" "gif" "pdf"))
+(setq revert-without-query (mapcar (lambda (ext) (concat ".*\\." ext)) mm/always-revert-list))
+
+(winner-mode)
 
 (use-package dashboard
   :ensure t
@@ -517,12 +535,15 @@
   (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo"))))
 
 (use-package git-gutter
+  :ensure t
   :hook (prog-mode . git-gutter-mode)
   :config
   (setq git-gutter:update-interval 0.02))
 
 (use-package git-gutter-fringe
+  :ensure t
   :config
+  (set-fringe-mode 8)
   (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
