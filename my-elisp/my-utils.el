@@ -95,3 +95,7 @@ set mark from my-saved-mark"
     (fzf--start dir #'fzf--action-find-file)))
 
 (setq vterm-timer-delay nil)
+
+(defun mm/is-pc ()
+  (zerop
+   (string-match-p "unknown" (battery-format "%B" (funcall battery-status-function)))))

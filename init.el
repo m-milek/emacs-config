@@ -39,17 +39,19 @@
 (setq visible-bell nil)
 (global-visual-line-mode -1)
 
-(set-face-attribute 'variable-pitch nil
-                    :font "Iosevka Aile"
-                    :height 120)
+(let ((font-size (if (mm/is-pc) 120 150)))
+  (set-face-attribute 'variable-pitch nil
+                      :font "Iosevka Aile"
+                      :height font-size)
 
-(set-face-attribute 'default nil
-                    :font "Source Code Pro"
-                    :height 120)
+  (set-face-attribute 'default nil
+                      :font "Source Code Pro"
+                      :height font-size)
 
-(set-face-attribute 'fixed-pitch nil
-                    :font "Source Code Pro"
-                    :height 120)
+  (set-face-attribute 'fixed-pitch nil
+                      :font "Source Code Pro"
+                      :height font-size)
+  )
 
 (use-package diminish)
 
@@ -337,7 +339,12 @@
            (doom-modeline-env-version nil)
            (doom-modeline-buffer-encoding nil)
            (doom-modeline-buffer-file-name-style 'truncate-up-to-project)
-           (display-battery-mode 1)))
+           (display-battery-mode 1))
+  :config
+  (if (mm/is-pc)
+      (progn
+        (doom-modeline-battery nil)
+        (display-battery-mode 0))))
 
 (use-package dired
   :ensure nil
@@ -724,8 +731,8 @@
 (set-face-attribute 'org-document-title nil :font "Iosevka Aile" :weight 'bold :height 1.3)
 
 (with-eval-after-load 'org-faces
-  (dolist (face '((org-level-1 . 1.3)
-                  (org-level-2 . 1.2)
+  (dolist (face '((org-level-1 . 1.4)
+                  (org-level-2 . 1.3)
                   (org-level-3 . 1.1)
                   (org-level-4 . 1.05)
                   (org-level-5 . 1.0)
@@ -801,16 +808,3 @@
   (setq esup-depth 0))
 
 )
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(sakura-theme ubuntu-theme uwu-theme nano-theme yatemplate yasnippet-snippets yafolding which-key vterm visual-fill-column undo-tree typescript-mode tree-sitter-langs toml-mode slime rustic restclient rainbow-delimiters quelpa-use-package prettier-js pdf-tools org-bullets multiple-cursors move-dup magit lsp-ui lsp-tailwindcss lsp-java keyfreq jtsx ivy-rich image+ helpful goto-line-preview go-mode git-gutter-fringe fzf flycheck-rust flycheck-clang-tidy esup ess emmet-mode doom-themes doom-modeline dockerfile-mode docker dired-single diminish dashboard cuda-mode counsel-projectile copilot company-box command-log-mode clang-format beacon auctex all-the-icons-dired)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
