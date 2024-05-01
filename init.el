@@ -1,3 +1,5 @@
+(let ((file-name-handler-alist nil)) ;; to improve startup time
+
 (eval-when-compile
   (require 'cl))
 (setq gc-cons-threshold 100000000)
@@ -32,22 +34,22 @@
 (scroll-bar-mode 0);
 (tool-bar-mode 0)
 (tooltip-mode 0);
-(set-fringe-mode 0);
+(set-fringe-mode 0) ;; later enabled for git-gutter-mode
 (menu-bar-mode 0)
 (setq visible-bell nil)
 (global-visual-line-mode -1)
 
 (set-face-attribute 'variable-pitch nil
                     :font "Iosevka Aile"
-                    :height 150)
+                    :height 120)
 
 (set-face-attribute 'default nil
                     :font "Source Code Pro"
-                    :height 150)
+                    :height 120)
 
 (set-face-attribute 'fixed-pitch nil
                     :font "Source Code Pro"
-                    :height 150)
+                    :height 120)
 
 (use-package diminish)
 
@@ -155,27 +157,29 @@
 (global-set-key (kbd "C-M-s") 'mm/save-point)
 (global-set-key (kbd "C-`") 'mm/toggle-vterm-below)
 
+(global-set-key (kbd "C-x f") 'mm/fzf-find-file-in-dir)
+
 (define-key emacs-lisp-mode-map (kbd "C-x M-e") 'eval-buffer)
 
 (use-package tree-sitter
   :ensure t)
 
 (use-package tree-sitter-langs
-  :defer
+  :defer t
   :ensure t
   :config
   (tree-sitter-require 'tsx)
   (global-tree-sitter-mode)
-  ;;(setq treesit-language-source-alist '((typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")))
-  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
+  (add-to-list 'treesit-language-source-alist
+        '((typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")))
   (add-to-list 'tree-sitter-major-mode-language-alist '(jtsx-jsx-mode . tsx))
   (add-to-list 'tree-sitter-major-mode-language-alist '(jtsx-tsx-mode . tsx)))
-;;(add-to-list 'tree-sitter-major-mode-language-alist '(typescript-tsx-mode . tsx))
+(add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
 
 ;; Snippets of code (all 3 need to be installed with package-install RET package-name RET)
 (use-package yasnippet
   :ensure t
-  :defer
+  :defer t
   :config
   (yas-global-mode)
   (use-package yasnippet-snippets
@@ -185,6 +189,7 @@
 ;; To add ts snippets jtsx modes create a .yas-parents file in snippets directory
 ;; in .emacs.d directory and write 'typescript-mode'
 (use-package yatemplate
+  :defer t
   :ensure t)
 
 (use-package multiple-cursors
@@ -196,7 +201,7 @@
 (use-package beacon
   :ensure t
   :config
-  (beacon-mode nil))
+  (beacon-mode 0))
 
 (use-package which-key
   :ensure t
@@ -249,6 +254,7 @@
 
 
 (use-package treemacs
+  :defer t
   :ensure t)
 
 (use-package rainbow-delimiters
@@ -258,7 +264,7 @@
   :ensure auctex)
 
 (use-package pdf-tools
-  :ensure t
+  :load-path "site-lisp/pdf-tools/lisp"
   :magic ("%PDF" . pdf-view-mode)
   :config
   (pdf-tools-install :no-query))
@@ -274,10 +280,13 @@
 
 (use-package avy
   :bind
-  ("M-s" . avy-goto-char-2))
+  ("M-s" . avy-goto-char-timer))
 
 (use-package ace-window
   :ensure t
+  :config
+  (setq aw-ignore-on t)
+  (setq aw-ignored-buffers '(image-mode))
   :bind
   ("M-o" . ace-window))
 
@@ -289,12 +298,18 @@
 (use-package compat
   :ensure t)
 
+(use-package fzf
+  :ensure t
+  :config
+  (setq fzf/position-bottom t))
+
 (use-package vterm
   :ensure t
   :commands vterm
   :config
   (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")
   (setq vterm-max-scrollback 10000)
+  (setq vterm-timer-delay nil)
   (add-hook 'term-exec-hook
             (function
              (lambda ()
@@ -342,7 +357,7 @@
 (setq doom-themes-enable-bold t)
 (setq doom-themes-enable-italic t)
 
-(load-theme 'doom-solarized-dark t)
+(load-theme 'doom-spacegrey t)
 
 (use-package docker
   :ensure t
@@ -398,6 +413,13 @@
 
 (pixel-scroll-precision-mode 1)
 
+;; always revert files with those extensions without asking
+(setq mm/always-revert-list
+      '("png" "jpg" "jpeg" "gif" "pdf"))
+(setq revert-without-query (mapcar (lambda (ext) (concat ".*\\." ext)) mm/always-revert-list))
+
+(winner-mode)
+
 (use-package dashboard
   :ensure t
   :init
@@ -450,14 +472,35 @@
   :ensure t)
 
 (use-package copilot
-  :quelpa (copilot :fetcher github
-                   :repo "copilot-emacs/copilot.el"
-                   :branch "main"
-                   :files ("dist" "*.el"))
-  :ensure t)
-;; you can utilize :map :hook and :config to customize copilot
+  ;; :quelpa (copilot :fetcher github
+  ;;                  :repo "copilot-emacs/copilot.el"
+  ;;                  :branch "main"
+  ;;                  :files ("dist" "*.el"))
+  :ensure t
+  :config
+  ;; https://robert.kra.hn/posts/2023-02-22-copilot-emacs-setup/
+  (defvar rk/no-copilot-modes '(shell-mode
+                                dashboard-mode
+                                inferior-python-mode
+                                eshell-mode
+                                term-mode
+                                vterm-mode
+                                comint-mode
+                                compilation-mode
+                                debugger-mode
+                                dired-mode-hook
+                                compilation-mode-hook
+                                flutter-mode-hook
+                                minibuffer-mode-hook)
+    "Modes in which copilot is inconvenient.")
+  (defun rk/copilot-disable-predicate ()
+    "When copilot should not automatically show completions."
+    (member major-mode rk/no-copilot-modes))
 
-(add-hook 'prog-mode-hook 'copilot-mode)
+  (add-to-list 'copilot-disable-predicates #'rk/copilot-disable-predicate)
+  )
+
+;;(add-hook 'lsp-mode-hook 'copilot-mode)
 (global-set-key (kbd "C-M-=") 'copilot-next-completion)
 (global-set-key (kbd "C-M--") 'copilot-previous-completion)
 (global-set-key (kbd "C-M-SPC") 'copilot-accept-completion)
@@ -482,6 +525,28 @@
   :ensure t
   :hook (company-mode . company-box-mode))
 (setq company-box-doc-enable t)
+
+(use-package undo-tree
+  :ensure t
+  :config
+  ;; Prevent undo tree files from polluting your git repo
+  (global-undo-tree-mode)
+  (setq undo-tree-auto-save-history t)
+  (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo"))))
+
+(use-package git-gutter
+  :ensure t
+  :hook (prog-mode . git-gutter-mode)
+  :config
+  (setq git-gutter:update-interval 0.02))
+
+(use-package git-gutter-fringe
+  :ensure t
+  :config
+  (set-fringe-mode 8)
+  (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
 
 ;;emmet mode
 (use-package emmet-mode
@@ -525,15 +590,6 @@
 (use-package prettier-js
   :ensure t)
 
-;; (defun check-tsx ()
-;;   "Check if we should switch from typescript-mode to typescript-tsx-mode."
-;;   (when (not (eq major-mode 'typescript-tsx-mode))
-;;     (when (string-match "\\.[jt]sx\\'" (buffer-file-name (current-buffer)))
-;;       (progn
-;;         (typescript-tsx-mode)
-;;         (message "Toggling TSX mode")))))
-
-
 ;;LSP mode for Typescript
 (use-package typescript-mode
   :mode "\\.[jt]s\\'"
@@ -552,8 +608,8 @@
 ;;   (setq lsp-tailwindcss-add-on-mode t)
 ;;   :config
 ;;   (add-to-list 'lsp-tailwindcss-major-modes 'jtsx-jsx-mode)
-;;   (add-to-list 'lsp-tailwindcss-major-modes 'jtsx-tsx-mode))
-;; (add-hook 'before-save-hook 'lsp-tailwindcss-rustywind-before-save)
+;;   (add-to-list 'lsp-tailwindcss-major-modes 'jtsx-tsx-mode)
+;;   (add-hook 'before-save-hook 'lsp-tailwindcss-rustywind-before-save))
 
 ;; requires emmet mode to work correctly
 (use-package jtsx
@@ -608,31 +664,6 @@
   (add-hook 'jtsx-tsx-mode-hook 'tree-sitter-mode)
   (add-hook 'jtsx-tsx-mode-hook 'prettier-js-mode)
   (add-hook 'jtsx-tsx-mode-hook 'emmet-mode))
-
-;; ;; define a custom mode that we'll toggle when needed
-;; (define-derived-mode typescript-tsx-mode typescript-mode "TSX")
-;; ;; use our derived mode for [jt]sx files
-;; (add-to-list 'auto-mode-alist '("\\.tsx\\'" . typescript-tsx-mode))
-;; (add-to-list 'auto-mode-alist '("\\.jsx\\'" . typescript-tsx-mode))
-
-;; ;;by default, typescript-mode is mapped to the treesitter typescript parser
-;; ;;use our derived mode to map both .tsx AND .ts to typescript-tsx-mode to treesitter tsx
-;; (add-to-list 'tree-sitter-major-mode-language-alist '(typescript-tsx-mode . tsx))
-
-;; (add-hook 'typescript-mode-hook 'lsp-deferred)
-;; (add-hook 'typescript-mode-hook 'check-tsx)
-;; (add-hook 'typescript-mode-hook 'prettier-js-mode))
-
-;; (use-package tsi
-;;   :after tree-sitter
-;;   :quelpa (tsi :fetcher github :repo "orzechowskid/tsi.el")
-;;   ;; define autoload definitions which when actually invoked will cause package to be loaded
-;;   :commands (tsi-typescript-mode tsi-json-mode tsi-css-mode)
-;;   :init
-;;   (add-hook 'typescript-mode-hook (lambda () (tsi-typescript-mode 1)))
-;;   (add-hook 'json-mode-hook (lambda () (tsi-json-mode 1)))
-;;   (add-hook 'css-mode-hook (lambda () (tsi-css-mode 1)))
-;;   (add-hook 'scss-mode-hook (lambda () (tsi-scss-mode 1))))
 
 (add-hook 'c-mode-hook 'my-c-mode-hook)
 (add-hook 'c++-mode-hook 'my-c++-mode-hook)
@@ -762,3 +793,24 @@
           lsp-ui-doc--handle-mouse-movement
           mwheel-scroll
           )))
+
+(use-package esup
+  :defer t
+  :ensure t
+  :config
+  (setq esup-depth 0))
+
+)
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(sakura-theme ubuntu-theme uwu-theme nano-theme yatemplate yasnippet-snippets yafolding which-key vterm visual-fill-column undo-tree typescript-mode tree-sitter-langs toml-mode slime rustic restclient rainbow-delimiters quelpa-use-package prettier-js pdf-tools org-bullets multiple-cursors move-dup magit lsp-ui lsp-tailwindcss lsp-java keyfreq jtsx ivy-rich image+ helpful goto-line-preview go-mode git-gutter-fringe fzf flycheck-rust flycheck-clang-tidy esup ess emmet-mode doom-themes doom-modeline dockerfile-mode docker dired-single diminish dashboard cuda-mode counsel-projectile copilot company-box command-log-mode clang-format beacon auctex all-the-icons-dired)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )

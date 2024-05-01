@@ -1,9 +1,11 @@
 (defun mm/kill-everything ()
+  "Kill every buffer."
   (interactive)
   (dolist (cur (buffer-list))
     (kill-buffer cur)))
 
 (defun mm/match-lsp-formatting ()
+  "Format the buffer with clang-format-buffer if it's c++, else use LSP formatting."
   (interactive)
   (if (or (eq major-mode 'c-mode) (eq major-mode 'c++-mode))
       (clang-format-buffer)
@@ -64,27 +66,6 @@ set mark from my-saved-mark"
         (other-window 1)
         (switch-to-buffer vterm-buffer))))))
 
-
-(setq mm-put-org-dirs '("~/Semester-4"))
-
-(defun mm/transform-filename (s) s)
-
-(defun mm/choose-put-org-file ()
-  (interactive)
-  (let ((filename
-         (ivy-completing-read
-          "Select the PUT .org file: "
-          (mapcar (lambda (s) (mm/transform-filename s))
-                  (flatten-list
-                   (mapcar
-                    (lambda (dir)
-                      (directory-files-recursively dir "\\.org$" nil nil t))
-                    mm-put-org-dirs))))))
-    (progn
-      (split-window-horizontally)
-      (other-window 1)
-      (find-file filename))))
-
 (defun mm/hashdef-comment-region ()
   "Comment a block using #if 0 and #endif."
   (interactive)
@@ -107,13 +88,10 @@ set mark from my-saved-mark"
       (counsel-projectile-find-file)
     (counsel-find-file)))
 
-;; (defun mm/insert-jsdoc-comment ()
-;;   (interactive)
-;;   (use-reg)
-;;   (insert "/**")
-;;   (newline-and-indent 2)
-;;   (insert "**/")
-;;   (previous-line)
-;;   (indent-region)
-;;   )
-;;(mm/insert-jsdoc-comment)
+(defun mm/fzf-find-file-in-dir (&optional directory)
+  "Start fzf in the given directory or home (~) if none is given."
+  (interactive)
+  (let ((dir (fzf--resolve-directory (or directory "~"))))
+    (fzf--start dir #'fzf--action-find-file)))
+
+(setq vterm-timer-delay nil)

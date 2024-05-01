@@ -1,0 +1,16 @@
+.cache/
+projects
+.dap-breakpoints
+*.lsp-session*
+*.~undo-tree~
+auto-save-list/
+backup/
+bookmarks
+eln-cache/
+elpa/
+projectile-bookmarks.eld
+quelpa/
+recentf
+transient/
+tree-sitter/
+undo/

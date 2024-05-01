@@ -3,6 +3,7 @@
   (tree-sitter-hl-mode)
   (yas-minor-mode-on)
   (yafolding-mode)
+  (copilot-mode)
   (lsp-ui-doc-mode)
   )
 
