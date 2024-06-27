@@ -96,6 +96,6 @@ set mark from my-saved-mark"
 
 (setq vterm-timer-delay nil)
 
-(defun mm/is-pc ()
-  (zerop
-   (string-match-p "unknown" (battery-format "%B" (funcall battery-status-function)))))
+;; (defun mm/is-pc ()
+;;   (zerop
+;;    (string-match-p "unknown" (battery-format "%B" (funcall battery-status-function)))))

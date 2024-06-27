@@ -1,5 +1,5 @@
 (let ((file-name-handler-alist nil)) ;; to improve startup time
-
+  
 (eval-when-compile
   (require 'cl))
 (setq gc-cons-threshold 100000000)
@@ -21,14 +21,14 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
-(load-file "/home/michal/.emacs.d/my-elisp/my-latex-mode.el")
-(load-file "/home/michal/.emacs.d/my-elisp/my-random-dashboard-image.el")
-(load-file "/home/michal/.emacs.d/my-elisp/my-windows.el")
-(load-file "/home/michal/.emacs.d/my-elisp/my-utils.el")
-(load-file "/home/michal/.emacs.d/my-elisp/char-summary.el")
-(load-file "/home/michal/.emacs.d/my-elisp/fixes.el")
-(load-file "/home/michal/.emacs.d/my-elisp/my-hooks.el")
-(load-file "/home/michal/.emacs.d/my-elisp/dashboard-fix.el")
+(load-file "/Users/michal/.emacs.d/my-elisp/my-latex-mode.el")
+(load-file "/Users/michal/.emacs.d/my-elisp/my-random-dashboard-image.el")
+(load-file "/Users/michal/.emacs.d/my-elisp/my-windows.el")
+(load-file "/Users/michal/.emacs.d/my-elisp/my-utils.el")
+(load-file "/Users/michal/.emacs.d/my-elisp/char-summary.el")
+(load-file "/Users/michal/.emacs.d/my-elisp/fixes.el")
+(load-file "/Users/michal/.emacs.d/my-elisp/my-hooks.el")
+(load-file "/Users/michal/.emacs.d/my-elisp/dashboard-fix.el")
 
 (setq inhibit-startup-message t)
 (scroll-bar-mode 0);
@@ -39,7 +39,7 @@
 (setq visible-bell nil)
 (global-visual-line-mode -1)
 
-(let ((font-size (if (mm/is-pc) 120 150)))
+(let ((font-size 150))
   (set-face-attribute 'variable-pitch nil
                       :font "Iosevka Aile"
                       :height font-size)
@@ -245,7 +245,7 @@
 ;; Default value is causing a slowdown, it's too low to handle server responses.
 (setq read-process-output-max (*(* 1024 1024) 3)) ;; 3Mib
 (setq lsp-headerline-breadcrumb-enable nil)
-(setq flycheck-clang-include-path '("/home/michal/Programming/PubHub/pubhub-server/include"))
+;;(setq flycheck-clang-include-path '("/home/michal/Programming/PubHub/pubhub-server/include"))
 
 (setq-default flycheck-disabled-checkers
               (append flycheck-disabled-checkers
@@ -341,10 +341,11 @@
            (doom-modeline-buffer-file-name-style 'truncate-up-to-project)
            (display-battery-mode 1))
   :config
-  (if (mm/is-pc)
-      (progn
-        (doom-modeline-battery nil)
-        (display-battery-mode 0))))
+  ;; (if (mm/is-pc)
+  ;;     (progn
+  ;;       (doom-modeline-battery nil)
+  ;;       (display-battery-mode 0)))
+  )
 
 (use-package dired
   :ensure nil
@@ -364,7 +365,7 @@
 (setq doom-themes-enable-bold t)
 (setq doom-themes-enable-italic t)
 
-(load-theme 'doom-spacegrey t)
+(load-theme 'doom-one t)
 
 (use-package docker
   :ensure t
@@ -698,11 +699,11 @@
 (add-hook 'go-mode-hook 'lsp)
 (add-hook 'go-mode-hook (lambda () (setq tab-width 4)))
 
-(setq inferior-lisp-program "/usr/bin/sbcl")
-(use-package slime
-  :defer t
-  :init
-  (load (expand-file-name "~/quicklisp/slime-helper.el")))
+;; (setq inferior-lisp-program "/usr/bin/sbcl")
+;; (use-package slime
+;;   :defer t
+;;   :init
+;;   (load (expand-file-name "~/quicklisp/slime-helper.el")))
 
 (defun mm/org-mode-setup ()
   (setq org-startup-indented t)
@@ -768,8 +769,8 @@
 
 (with-eval-after-load 'org-mode-map (define-key org-mode-map (kbd "C-j") nil))
 
-(setq agenda-dirs '("~/Documents/Notes/Semester-6" "~/Documents/org" "~/Programming"))
-(setq org-agenda-files (-flatten-n 1 (mapcar (lambda (dir) (directory-files-recursively dir "\\.org$" nil nil t)) agenda-dirs)))
+;; (setq agenda-dirs '("~/Documents/Notes/Semester-6" "~/Documents/org" "~/Programming"))
+;; (setq org-agenda-files (-flatten-n 1 (mapcar (lambda (dir) (directory-files-recursively dir "\\.org$" nil nil t)) agenda-dirs)))
 
 (setq org-agenda-start-with-log-mode nil)
 ;;(setq org-log-done 'time)
@@ -788,7 +789,7 @@
         ("note" . ?n)
         ("idea" . ?i)))
 
-(shell-command "/usr/bin/xmodmap /home/michal/.Xmodmap")
+;;(shell-command "/usr/bin/xmodmap /home/michal/.Xmodmap")
 
 (use-package keyfreq
   :ensure t
