@@ -1,7 +1,7 @@
 (defun my-lsp-mode-hook ()
   (message "EXECUTING MY LSP HOOK")
   (tree-sitter-hl-mode)
-  (yas-minor-mode-on)
+  (yas-minor-mode)
   (yafolding-mode)
   (copilot-mode)
   (lsp-ui-doc-mode)

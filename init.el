@@ -557,20 +557,20 @@
   (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
 
 ;;emmet mode
-(use-package emmet-mode
-  :ensure t
-  :config
-  (add-hook 'sgml-mode-hook 'emmet-mode) ;; Auto-start on any markup modes
-  (add-hook 'css-mode-hook  'emmet-mode) ;; enable Emmet's css abbreviation.
-  (add-hook 'emmet-mode-hook (lambda () (setq emmet-indent-after-insert nil)))
-  (setq emmet-move-cursor-between-quotes t) ;; default nil
-  (add-to-list 'emmet-jsx-major-modes 'jtsx-jsx-mode)
-  (add-to-list 'emmet-jsx-major-modes 'jtsx-tsx-mode))
+;; (use-package emmet-mode
+;;   :ensure t
+;;   :config
+;;   (add-hook 'sgml-mode-hook 'emmet-mode) ;; Auto-start on any markup modes
+;;   (add-hook 'css-mode-hook  'emmet-mode) ;; enable Emmet's css abbreviation.
+;;   (add-hook 'emmet-mode-hook (lambda () (setq emmet-indent-after-insert nil)))
+;;   (setq emmet-move-cursor-between-quotes t) ;; default nil
+;;   (add-to-list 'emmet-jsx-major-modes 'jtsx-jsx-mode)
+;;   (add-to-list 'emmet-jsx-major-modes 'jtsx-tsx-mode))
 
-(with-eval-after-load "emmet-mode"
-  (define-key emmet-mode-keymap (kbd "C-j") nil))
+;; (with-eval-after-load "emmet-mode"
+;;   (define-key emmet-mode-keymap (kbd "C-j") nil))
 
-;; LSP mode for HTML
+;; ;; LSP mode for HTML
 (use-package mhtml-mode
   :mode "\\.html\\'"
   :config
@@ -665,13 +665,19 @@
   (add-hook 'jtsx-jsx-mode-hook 'lsp)
   (add-hook 'jtsx-jsx-mode-hook 'tree-sitter-mode)
   (add-hook 'jtsx-jsx-mode-hook 'prettier-js-mode)
-  (add-hook 'jtsx-jsx-mode-hook 'emmet-mode)
+  ;;(add-hook 'jtsx-jsx-mode-hook 'emmet-mode)
 
   (add-hook 'jtsx-tsx-mode-hook 'jtsx-bind-keys-to-jtsx-tsx-mode-map)
   (add-hook 'jtsx-tsx-mode-hook 'lsp)
   (add-hook 'jtsx-tsx-mode-hook 'tree-sitter-mode)
   (add-hook 'jtsx-tsx-mode-hook 'prettier-js-mode)
-  (add-hook 'jtsx-tsx-mode-hook 'emmet-mode))
+  ;;(add-hook 'jtsx-tsx-mode-hook 'emmet-mode)
+  )
+
+(use-package exec-path-from-shell
+  :ensure t)
+(when (memq window-system '(mac ns x))
+(exec-path-from-shell-initialize))
 
 (add-hook 'c-mode-hook 'my-c-mode-hook)
 (add-hook 'c++-mode-hook 'my-c++-mode-hook)
@@ -802,10 +808,10 @@
           mwheel-scroll
           )))
 
-(use-package esup
-  :defer t
-  :ensure t
-  :config
-  (setq esup-depth 0))
+;; (use-package esup
+;;   :defer t
+;;   :ensure t
+;;   :config
+;;   (setq esup-depth 0))
 
 )
