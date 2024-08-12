@@ -1,41 +1,50 @@
 (let ((file-name-handler-alist nil)) ;; to improve startup time
   
-(eval-when-compile
-  (require 'cl))
-(setq gc-cons-threshold 100000000)
+  ;; (eval-when-compile
+  ;;   (require 'cl))
+  (setq gc-cons-threshold 100000000)
+  
 
-(require 'package)
-(setq package-archives '(
-                         ("melpa" . "https://melpa.org/packages/")
-                         ("melpa-stable" . "https://stable.melpa.org/packages/")
-                         ("org" . "https://orgmode.org/elpa/")
-                         ("elpa" . "https://elpa.gnu.org/packages/")))
-(package-initialize)
-(unless package-archive-contents
-  (package-refresh-contents))
+  (require 'package)
+  (setq package-archives '(
+                           ("melpa" . "https://melpa.org/packages/")
+                           ("melpa-stable" . "https://stable.melpa.org/packages/")
+                           ("org" . "https://orgmode.org/elpa/")
+                           ("elpa" . "https://elpa.gnu.org/packages/")))
+  (package-initialize)
+  (unless package-archive-contents
+    (package-refresh-contents))
 
-;; Initialize use-package on non Linux platforms
-(unless (package-installed-p 'use-package)
-  (package-install 'use-package))
+  ;; Initialize use-package on non Linux platforms
+  (unless (package-installed-p 'use-package)
+    (package-install 'use-package))
 
-(require 'use-package)
-(setq use-package-always-ensure t)
+  (require 'use-package)
+  (setq use-package-always-ensure t)
 
-(load-file "/Users/michal/.emacs.d/my-elisp/my-latex-mode.el")
-(load-file "/Users/michal/.emacs.d/my-elisp/my-random-dashboard-image.el")
-(load-file "/Users/michal/.emacs.d/my-elisp/my-windows.el")
-(load-file "/Users/michal/.emacs.d/my-elisp/my-utils.el")
-(load-file "/Users/michal/.emacs.d/my-elisp/char-summary.el")
-(load-file "/Users/michal/.emacs.d/my-elisp/fixes.el")
-(load-file "/Users/michal/.emacs.d/my-elisp/my-hooks.el")
-(load-file "/Users/michal/.emacs.d/my-elisp/dashboard-fix.el")
+(use-package exec-path-from-shell
+  :ensure t)
+(when (memq window-system '(mac ns x))
+  (exec-path-from-shell-initialize))
+
+(defun my-elisp-file (filename)
+  (concat "/Users/michal/.emacs.d/my-elisp/" filename))
+
+(load-file (my-elisp-file "my-latex-mode.el"))
+(load-file (my-elisp-file "my-random-dashboard-image.el"))
+(load-file (my-elisp-file "my-windows.el"))
+(load-file (my-elisp-file "my-utils.el"))
+(load-file (my-elisp-file "char-summary.el"))
+(load-file (my-elisp-file "fixes.el"))
+(load-file (my-elisp-file "my-hooks.el"))
+(load-file (my-elisp-file "dashboard-fix.el"))
 
 (setq inhibit-startup-message t)
 (scroll-bar-mode 0);
 (tool-bar-mode 0)
-(tooltip-mode 0);
+(tooltip-mode nil)
 (set-fringe-mode 0) ;; later enabled for git-gutter-mode
-(menu-bar-mode 0)
+(menu-bar-mode t) ;; enabled for macOS, since it's at the top bar anyway
 (setq visible-bell nil)
 (global-visual-line-mode -1)
 
@@ -53,7 +62,71 @@
                       :height font-size)
   )
 
-(use-package diminish)
+;; Refresh a file edited outside of emacs
+(global-auto-revert-mode 1)
+
+;; Improve jumping between words in pascalCase
+(global-subword-mode 1)
+(setq subword-mode 1)
+
+;; Always ask for "y or n", not "yes or no"
+(defalias 'yes-or-no-p 'y-or-n-p)
+
+;; Auto close (), "", {}
+(electric-pair-mode 1)
+(setq electric-pair-pairs
+      '(
+        (?\" . ?\")
+        (?\{ . ?\})))
+
+(column-number-mode)
+(global-display-line-numbers-mode)
+
+
+;; Disable line numbers in some modes
+(dolist (mode '(org-mode-hook
+                term-mode-hook
+                eshell-mode-hook
+                treemacs-mode-hook
+                shell-mode-hook
+                vterm-mode-hook
+                rustic-cargo-run-mode-hook
+                rustic-cargo-test-mode-hook
+                eww-mode-hook
+                ))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+(setq-default truncate-lines t)
+(setq word-wrap t)
+(delete-selection-mode 1)
+
+(setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
+      backup-by-copying t    ; Don't delink hardlinks
+      version-control t      ; Use version numbers on backups
+      delete-old-versions t  ; Automatically delete excess backups
+      kept-new-versions 20   ; how many of the newest versions to keep
+      kept-old-versions 5    ; and how many of the old
+      )
+
+;; Indent with spaces
+(setq-default indent-tabs-mode nil)
+
+;; Do not show "./" or "../" in ivy file listings
+(setq ivy-extra-directories nil)
+
+;; Scroll smoothly
+(pixel-scroll-precision-mode t)
+
+;; always revert files with those extensions without asking
+(setq mm/always-revert-list
+      '("png" "jpg" "jpeg" "gif" "pdf"))
+(setq revert-without-query (mapcar (lambda (ext) (concat ".*\\." ext)) mm/always-revert-list))
+
+;; Undo/Redo window layout changes
+(winner-mode)
+
+(use-package diminish
+  :ensure t)
 
 (use-package swiper
   :ensure t)
@@ -103,7 +176,7 @@
 (global-set-key (kbd "<f1> l") 'counsel-find-library)
 (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
 (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
-(global-set-key (kbd "<f2> j") 'counsel-set-variable)
+
 (global-set-key (kbd "C-x b") 'ivy-switch-buffer)
 (global-set-key (kbd "C-c v") 'ivy-push-view)
 (global-set-key (kbd "C-c V") 'ivy-pop-view)
@@ -113,7 +186,7 @@
 (global-set-key (kbd "C-c L") 'counsel-git-log)
 (global-set-key (kbd "C-c k") 'counsel-rg)
 (global-set-key (kbd "C-c m") 'counsel-linux-app)
-(global-set-key (kbd "C-c f") 'counsel-fzf)
+
 (global-set-key (kbd "C-x l") 'counsel-locate)
 (global-set-key (kbd "C-c J") 'counsel-file-jump)
 (global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
@@ -121,35 +194,9 @@
 (global-set-key (kbd "C-c b") 'counsel-bookmark)
 (global-set-key (kbd "C-c d") 'counsel-descbinds)
 (global-set-key (kbd "C-c o") 'counsel-outline)
-(global-set-key (kbd "C-c t") 'counsel-load-theme)
 (global-set-key (kbd "C-c F") 'counsel-org-file)
 
-(global-set-key (kbd "C-c w") 'toggle-truncate-lines)
-
-;;(global-set-key (kbd "C-n") 'electric-newline-and-maybe-indent)
-(global-set-key (kbd "C-f") 'kill-line)
-(global-set-key (kbd "C-p") 'help-command)
-(global-set-key (kbd "C-b") 'recenter-top-bottom)
-(global-set-key (kbd "C-M-o") 'counsel-switch-buffer)
-
-(global-set-key (kbd "C-t") 'goto-line-preview)
-
-(global-set-key (kbd "M-<up>") 'move-dup-move-lines-up)
-(global-set-key (kbd "M-<down>") 'move-dup-move-lines-down)
-(global-set-key (kbd "C-M-<up>") 'move-dup-duplicate-up)
-(global-set-key (kbd "C-M-<down>") 'move-dup-duplicate-down)
-
-(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
-(global-set-key (kbd "C-.") 'mc/mark-next-like-this)
-(global-set-key (kbd "C-,") 'mc/mark-previous-like-this)
-(global-set-key (kbd "C-c C-,") 'mc/mark-all-like-this)
-
 (global-set-key (kbd "C-c a") 'org-agenda)
-
-;;(global-unset-key (kbd "<right>"))
-;;(global-unset-key (kbd "<left>"))
-;;(global-unset-key (kbd "<up>"))
-;;(global-unset-key (kbd "<down>"))
 
 (global-set-key (kbd "C-x K") 'mm/kill-everything)
 (global-set-key (kbd "M-RET") 'mm/split-window-horizontally-and-focus-vterm)
@@ -161,38 +208,45 @@
 
 (global-set-key (kbd "C-x f") 'mm/fzf-find-file-in-dir)
 
-(define-key emacs-lisp-mode-map (kbd "C-x M-e") 'eval-buffer)
-
 (use-package tree-sitter
   :ensure t)
 
-(use-package tree-sitter-langs
-  :defer t
-  :ensure t
-  :config
-  (tree-sitter-require 'tsx)
-  (global-tree-sitter-mode)
-  (add-to-list 'treesit-language-source-alist
-        '((typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")))
-  (add-to-list 'tree-sitter-major-mode-language-alist '(jtsx-jsx-mode . tsx))
-  (add-to-list 'tree-sitter-major-mode-language-alist '(jtsx-tsx-mode . tsx)))
+;; (setq treesit-language-source-alist
+;;     '((tsx        "https://github.com/tree-sitter/tree-sitter-typescript"
+;;                   "v0.20.3"
+;;                   "tsx/src")
+;;       (typescript "https://github.com/tree-sitter/tree-sitter-typescript"
+;;                   "v0.20.3"
+;;                   "typescript/src")))
+
+(use-package
+  tree-sitter-langs
+   :defer t
+   :ensure t
+   :config
+   (tree-sitter-require 'tsx)
+   (global-tree-sitter-mode)
+   (add-to-list 'tree-sitter-major-mode-language-alist '(jtsx-jsx-mode . tsx))
+   (add-to-list 'tree-sitter-major-mode-language-alist '(jtsx-tsx-mode . tsx)))
+
+;; Always use highlighting
 (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
 
 ;; Snippets of code (all 3 need to be installed with package-install RET package-name RET)
-(use-package yasnippet
-  :ensure t
-  :defer t
-  :config
-  (yas-global-mode)
-  (use-package yasnippet-snippets
-    :ensure t)
-  (yas-reload-all))
+;; (use-package yasnippet
+;;   :ensure t
+;;   :defer t
+;;   :config
+;;   (yas-global-mode)
+;;   (use-package yasnippet-snippets
+;;     :ensure t)
+;;   (yas-reload-all))
 
-;; To add ts snippets jtsx modes create a .yas-parents file in snippets directory
-;; in .emacs.d directory and write 'typescript-mode'
-(use-package yatemplate
-  :defer t
-  :ensure t)
+;; ;; To add ts snippets jtsx modes create a .yas-parents file in snippets directory
+;; ;; in .emacs.d directory and write 'typescript-mode'
+;; (use-package yatemplate
+;;   :defer t
+;;   :ensure t)
 
 (use-package multiple-cursors
   :ensure t)
@@ -219,6 +273,7 @@
   :ensure t)
 
 (use-package projectile
+  :ensure t
   :diminish projectile-mode
   :config (projectile-mode)
   :bind-keymap
@@ -229,31 +284,14 @@
   (setq projectile-switch-project-action #'projectile-dired))
 
 (use-package counsel-projectile
+  :ensure t
   :config (counsel-projectile-mode))
 
 (use-package magit
+  :ensure t
   :commands (magit-status magit-get-current-branch)
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
-
-
-;; Syntax checking
-(use-package flycheck
-  :ensure t
-  :init (global-flycheck-mode))
-;; Increase the amount of data which Emacs reads from the process.
-;; Default value is causing a slowdown, it's too low to handle server responses.
-(setq read-process-output-max (*(* 1024 1024) 3)) ;; 3Mib
-(setq lsp-headerline-breadcrumb-enable nil)
-;;(setq flycheck-clang-include-path '("/home/michal/Programming/PubHub/pubhub-server/include"))
-
-(setq-default flycheck-disabled-checkers
-              (append flycheck-disabled-checkers
-                      '(javascript-jshint json-jsonlist)))
-
-;; Enable flycheck globally
-(add-hook 'after-init-hook #'global-flycheck-mode)
-
 
 (use-package treemacs
   :defer t
@@ -275,9 +313,6 @@
   :ensure t)
 
 (use-package goto-line-preview
-  :ensure t)
-
-(use-package ess
   :ensure t)
 
 (use-package avy
@@ -318,6 +353,7 @@
                (set-buffer-process-coding-system 'utf-8-unix 'utf-8-unix)))))
 
 (use-package helpful
+  :ensure t
   :custom
   (counsel-describe-function-function #'helpful-callable)
   (counsel-describe-variable-function #'helpful-variable)
@@ -339,13 +375,7 @@
            (doom-modeline-env-version nil)
            (doom-modeline-buffer-encoding nil)
            (doom-modeline-buffer-file-name-style 'truncate-up-to-project)
-           (display-battery-mode 1))
-  :config
-  ;; (if (mm/is-pc)
-  ;;     (progn
-  ;;       (doom-modeline-battery nil)
-  ;;       (display-battery-mode 0)))
-  )
+           (display-battery-mode 1)))
 
 (use-package dired
   :ensure nil
@@ -355,6 +385,7 @@
   :ensure t
   :hook (dired-mode . all-the-icons-dired-mode))
 
+;; Don't create many dired buffers, use just one
 (use-package dired-single
   :ensure t)
 
@@ -373,60 +404,6 @@
 
 (use-package dockerfile-mode
   :ensure t)
-
-;; Refresh a file edited outside of emacs
-(global-auto-revert-mode 1)
-
-;; Improve jumping between words in pascalCase
-(global-subword-mode 1)
-
-;; Auto close (), "", {}
-(electric-pair-mode 1)
-(setq electric-pair-pairs
-      '(
-        (?\" . ?\")
-        (?\{ . ?\})))
-
-(column-number-mode)
-(global-display-line-numbers-mode)
-(defalias 'yes-or-no-p 'y-or-n-p)
-
-;; Disable line numbers in some scenarios
-(dolist (mode '(org-mode-hook
-                term-mode-hook
-                eshell-mode-hook
-                treemacs-mode-hook
-                shell-mode-hook
-                vterm-mode-hook
-                rustic-cargo-run-mode-hook
-                rustic-cargo-test-mode-hook
-                eww-mode-hook
-                ))
-  (add-hook mode (lambda () (display-line-numbers-mode 0))))
-
-(setq-default truncate-lines t)
-(delete-selection-mode 1)
-(setq subword-mode 1)
-
-(setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
-      backup-by-copying t    ; Don't delink hardlinks
-      version-control t      ; Use version numbers on backups
-      delete-old-versions t  ; Automatically delete excess backups
-      kept-new-versions 20   ; how many of the newest versions to keep
-      kept-old-versions 5    ; and how many of the old
-      )
-
-(setq-default indent-tabs-mode nil)
-(setq ivy-extra-directories nil)
-
-(pixel-scroll-precision-mode 1)
-
-;; always revert files with those extensions without asking
-(setq mm/always-revert-list
-      '("png" "jpg" "jpeg" "gif" "pdf"))
-(setq revert-without-query (mapcar (lambda (ext) (concat ".*\\." ext)) mm/always-revert-list))
-
-(winner-mode)
 
 (use-package dashboard
   :ensure t
@@ -473,6 +450,25 @@
   :config
   (setq lsp-ui-doc-enable t)
   (setq lsp-ui-doc-position 'bottom))
+
+;; Syntax checking, inline errors
+(use-package flycheck
+  :ensure t
+  :init (global-flycheck-mode))
+
+;; Increase the amount of data which Emacs reads from the process.
+;; Default value is causing a slowdown, it's too low to handle server responses.
+(setq read-process-output-max (*(* 1024 1024) 3)) ;; 3Mib
+(setq lsp-headerline-breadcrumb-enable nil)
+
+
+
+(setq-default flycheck-disabled-checkers
+              (append flycheck-disabled-checkers
+                      '(javascript-jshint json-jsonlist)))
+
+;; Enable flycheck globally
+(add-hook 'after-init-hook #'global-flycheck-mode)
 
 (use-package quelpa
   :ensure t)
@@ -556,21 +552,7 @@
   (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
 
-;;emmet mode
-;; (use-package emmet-mode
-;;   :ensure t
-;;   :config
-;;   (add-hook 'sgml-mode-hook 'emmet-mode) ;; Auto-start on any markup modes
-;;   (add-hook 'css-mode-hook  'emmet-mode) ;; enable Emmet's css abbreviation.
-;;   (add-hook 'emmet-mode-hook (lambda () (setq emmet-indent-after-insert nil)))
-;;   (setq emmet-move-cursor-between-quotes t) ;; default nil
-;;   (add-to-list 'emmet-jsx-major-modes 'jtsx-jsx-mode)
-;;   (add-to-list 'emmet-jsx-major-modes 'jtsx-tsx-mode))
-
-;; (with-eval-after-load "emmet-mode"
-;;   (define-key emmet-mode-keymap (kbd "C-j") nil))
-
-;; ;; LSP mode for HTML
+;; LSP mode for HTML
 (use-package mhtml-mode
   :mode "\\.html\\'"
   :config
@@ -583,17 +565,27 @@
   (add-hook 'css-mode-hook 'lsp)
   (setq css-indent-offset 2))
 
-(use-package rustic
-  :ensure t
-  :hook (rustic-mode . lsp-deferred)
-  :hook (rustic-mode . tree-sitter-hl-mode)
-  :config
-  (require 'lsp-rust)
-  (setq lsp-rust-analyzer-completion-add-call-parenthesis t)
-  (setq rust-indent-method-chain t))
+;; (use-package rustic
+;;   :ensure t
+;;   :hook (rustic-mode . lsp-deferred)
+;;   :hook (rustic-mode . tree-sitter-hl-mode)
+;;   :config
+;;   (require 'lsp-rust)
+;;   (setq lsp-rust-analyzer-completion-add-call-parenthesis t)
+;;   (setq rust-indent-method-chain t))
 
-(use-package flycheck-rust
-  :ensure t)
+(use-package rust-mode
+  :ensure t
+  :init
+  (setq rust-format-on-save t)
+  (add-hook 'rust-mode-hook
+        (lambda () (prettify-symbols-mode)))
+  (setq rust-mode-treesitter-derive t)
+  )
+(add-hook 'rust-mode-hook #'lsp)
+
+ (use-package flycheck-rust
+   :ensure t)
 
 (use-package prettier-js
   :ensure t)
@@ -605,21 +597,19 @@
   :config
   (setq typescript-indent-level 2)
   (add-hook 'typescript-mode-hook 'lsp-deferred)
-  (add-hook 'typescript-mode-hook 'prettier-js-mode)
-  ;;(add-hook 'find-file-hook (lambda () (treesit-parser-create 'typescript)))
-  )
+  (add-hook 'typescript-mode-hook 'prettier-js-mode))
 
-;; ;; tailwind lsp working with jtsx mode 
-;; (use-package lsp-tailwindcss
-;;   :ensure t
-;;   :init
-;;   (setq lsp-tailwindcss-add-on-mode t)
-;;   :config
-;;   (add-to-list 'lsp-tailwindcss-major-modes 'jtsx-jsx-mode)
-;;   (add-to-list 'lsp-tailwindcss-major-modes 'jtsx-tsx-mode)
-;;   (add-hook 'before-save-hook 'lsp-tailwindcss-rustywind-before-save))
+;; tailwind lsp working with jtsx mode 
+(use-package lsp-tailwindcss
+  :ensure t
+  :init
+  (setq lsp-tailwindcss-add-on-mode t)
+  :config
+  (add-to-list 'lsp-tailwindcss-major-modes 'jtsx-jsx-mode)
+  (add-to-list 'lsp-tailwindcss-major-modes 'jtsx-tsx-mode)
+  (add-hook 'before-save-hook 'lsp-tailwindcss-rustywind-before-save))
 
-;; requires emmet mode to work correctly
+;;requires emmet mode to work correctly
 (use-package jtsx
   :ensure t
   :mode (("\\.jsx\\'" . jtsx-jsx-mode)
@@ -632,8 +622,6 @@
   (js-indent-level 2)
   (typescript-ts-mode-indent-offset 2)
   (jtsx-switch-indent-offset 0)
-  ;; (jtsx-indent-statement-block-regarding-standalone-parent nil)
-  ;; (jtsx-jsx-element-move-allow-step-out t)
   (jtsx-enable-jsx-electric-closing-element t)
   (jtsx-enable-electric-open-newline-between-jsx-element-tags t)
   (jtsx-enable-jsx-element-tags-auto-sync nil)
@@ -665,31 +653,26 @@
   (add-hook 'jtsx-jsx-mode-hook 'lsp)
   (add-hook 'jtsx-jsx-mode-hook 'tree-sitter-mode)
   (add-hook 'jtsx-jsx-mode-hook 'prettier-js-mode)
-  ;;(add-hook 'jtsx-jsx-mode-hook 'emmet-mode)
 
   (add-hook 'jtsx-tsx-mode-hook 'jtsx-bind-keys-to-jtsx-tsx-mode-map)
   (add-hook 'jtsx-tsx-mode-hook 'lsp)
   (add-hook 'jtsx-tsx-mode-hook 'tree-sitter-mode)
   (add-hook 'jtsx-tsx-mode-hook 'prettier-js-mode)
-  ;;(add-hook 'jtsx-tsx-mode-hook 'emmet-mode)
-  )
-
-(use-package exec-path-from-shell
-  :ensure t)
-(when (memq window-system '(mac ns x))
-(exec-path-from-shell-initialize))
+  (add-hook 'jtsx-tsx-mode-hook (lambda () (flymake-eslint-enable))))
 
 (add-hook 'c-mode-hook 'my-c-mode-hook)
-(add-hook 'c++-mode-hook 'my-c++-mode-hook)
+  (add-hook 'c++-mode-hook 'my-c++-mode-hook)
 
-(use-package clang-format
-  :ensure t
-  :custom
-  (clang-format-fallback-style "WebKit"))
+  (use-package clang-format
+    :ensure t
+    :custom
+    (clang-format-fallback-style "WebKit"))
+
+(setq flycheck-clang-include-path '("/home/michal/Programming/PubHub/pubhub-server/include"))
 
 (use-package lsp-java
   :ensure t
-  :hook (java-mode-hook . lsp-mode))
+  :hook (java-mode-hook . 'lsp))
 
 (add-hook 'LaTeX-mode-hook 'my-LaTeX-mode-hook)
 
@@ -699,6 +682,7 @@
 
 (add-hook 'emacs-lisp-mode-hook 'company-mode)
 (add-hook 'emacs-lisp-mode-hook 'rainbow-delimiters-mode)
+(define-key emacs-lisp-mode-map (kbd "C-x M-e") 'eval-buffer)
 
 (use-package go-mode
   :ensure t)
@@ -762,7 +746,7 @@
     ))
 
 (defun mm/org-mode-visual-fill ()
-  (setq visual-fill-column-width 100
+  (setq visual-fill-column-width 160
         visual-fill-column-center-text t)
   (visual-fill-column-mode 1))
 
@@ -778,24 +762,22 @@
 ;; (setq agenda-dirs '("~/Documents/Notes/Semester-6" "~/Documents/org" "~/Programming"))
 ;; (setq org-agenda-files (-flatten-n 1 (mapcar (lambda (dir) (directory-files-recursively dir "\\.org$" nil nil t)) agenda-dirs)))
 
-(setq org-agenda-start-with-log-mode nil)
+;;(setq org-agenda-start-with-log-mode nil)
 ;;(setq org-log-done 'time)
 ;;(setq org-log-into-drawer t)
 
-(setq org-todo-keywords
-      '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")))
+;; (setq org-todo-keywords
+;;       '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")))
 
-(setq org-tag-alist
-      '((:startgroup)
-        ;; Put mutually exclusive tags here
-        (:endgroup)
-        ("@home" . ?H)
-        ("@work" . ?W)
-        ("@put" . ?p)
-        ("note" . ?n)
-        ("idea" . ?i)))
-
-;;(shell-command "/usr/bin/xmodmap /home/michal/.Xmodmap")
+;; (setq org-tag-alist
+;;       '((:startgroup)
+;;         ;; Put mutually exclusive tags here
+;;         (:endgroup)
+;;         ("@home" . ?H)
+;;         ("@work" . ?W)
+;;         ("@put" . ?p)
+;;         ("note" . ?n)
+;;         ("idea" . ?i)))
 
 (use-package keyfreq
   :ensure t
@@ -806,6 +788,8 @@
         '(self-insert-command
           lsp-ui-doc--handle-mouse-movement
           mwheel-scroll
+          pixel-scroll-precision
+          ignore-preserving-kill-region
           )))
 
 ;; (use-package esup
@@ -815,3 +799,15 @@
 ;;   (setq esup-depth 0))
 
 )
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages nil))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )

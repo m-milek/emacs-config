@@ -1,11 +1,10 @@
 (defun my-lsp-mode-hook ()
   (message "EXECUTING MY LSP HOOK")
-  (tree-sitter-hl-mode)
   (yas-minor-mode)
   (yafolding-mode)
   (copilot-mode)
   (lsp-ui-doc-mode)
-  )
+  (tree-sitter-hl-mode))
 
 (defun my-c++-mode-hook ()
   (lsp)
