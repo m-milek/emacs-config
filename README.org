@@ -212,7 +212,9 @@ Setup different font faces for text and code
 (global-set-key (kbd "C-c t") 'counsel-load-theme)
 (global-set-key (kbd "C-c w") 'toggle-truncate-lines)
 
+(message "HERE BEFORE")
 (global-set-key (kbd "C-f") 'kill-line)
+(message "HERE AFTER")
 (global-set-key (kbd "C-p") 'help-command)
 (global-set-key (kbd "C-b") 'recenter-top-bottom)
 (global-set-key (kbd "C-M-o") 'counsel-switch-buffer)
@@ -228,7 +230,7 @@ Setup different font faces for text and code
 (global-set-key (kbd "C-.") 'mc/mark-next-like-this)
 (global-set-key (kbd "C-,") 'mc/mark-previous-like-this)
 (global-set-key (kbd "C-c C-,") 'mc/mark-all-like-this)
-#+END_SRC elisp
+#+END_SRC
 **** Other
 #+BEGIN_SRC elisp
   (global-set-key (kbd "M-x") 'counsel-M-x)

@@ -168,6 +168,30 @@
 (global-set-key (kbd "C-m") 'back-to-indentation)
 (global-set-key (kbd "RET") 'newline)
 
+(global-set-key (kbd "C-c f") 'counsel-fzf)
+(global-set-key (kbd "<f2> j") 'counsel-set-variable)
+(global-set-key (kbd "C-c t") 'counsel-load-theme)
+(global-set-key (kbd "C-c w") 'toggle-truncate-lines)
+
+(message "HERE BEFORE")
+(global-set-key (kbd "C-f") 'kill-line)
+(message "HERE AFTER")
+(global-set-key (kbd "C-p") 'help-command)
+(global-set-key (kbd "C-b") 'recenter-top-bottom)
+(global-set-key (kbd "C-M-o") 'counsel-switch-buffer)
+
+(global-set-key (kbd "C-t") 'goto-line-preview)
+
+(global-set-key (kbd "M-<up>") 'move-dup-move-lines-up)
+(global-set-key (kbd "M-<down>") 'move-dup-move-lines-down)
+(global-set-key (kbd "C-M-<up>") 'move-dup-duplicate-up)
+(global-set-key (kbd "C-M-<down>") 'move-dup-duplicate-down)
+
+(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+(global-set-key (kbd "C-.") 'mc/mark-next-like-this)
+(global-set-key (kbd "C-,") 'mc/mark-previous-like-this)
+(global-set-key (kbd "C-c C-,") 'mc/mark-all-like-this)
+
 (global-set-key (kbd "M-x") 'counsel-M-x)
 (global-set-key (kbd "C-x C-f") 'counsel-find-file)
 (global-set-key (kbd "M-y") 'counsel-yank-pop)
@@ -799,15 +823,3 @@
 ;;   (setq esup-depth 0))
 
 )
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages nil))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
